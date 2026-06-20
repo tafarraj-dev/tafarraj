@@ -49,6 +49,11 @@ save_verified_matches_lodynet.py
 test_5_dramas.py
 update_thumbnail_urls.py
 upload_to_cloudinary.py
+Find_new_esheeq_dramas.py
+filter_lodynet_index.py
+update_thumbnail_urls.py
+upload_to_cloudinary.py
+fix.py
 
 # Env secrets if any
 .env
