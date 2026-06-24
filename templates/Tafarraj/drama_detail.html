@@ -1,0 +1,734 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ drama.title_arabic }} - تفرّج</title>
+    <meta name="description" content="شاهد مسلسل {{ drama.title_arabic }} {{ drama.get_country_display }} {{ drama.release_year }} مترجم بالعربية - {{ drama.description_arabic|truncatechars:100 }}">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Cinzel:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+    <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      /* ── MODERN EDITORIAL · deep neutral canvas (identical to list page) ── */
+      --bg:          #0a0a0b;
+      --bg-2:        #0e0e10;
+      --surface:     #111114;
+      --surface-2:   #16161b;
+      --surface-3:   #1c1c22;
+      --surface-4:   #25252d;
+
+      /* ── Type ── */
+      --text:        #f1f1f4;
+      --text-dim:    #a6a6b2;
+      --text-muted:  #6b6b78;
+      --text-faint:  #4a4a55;
+
+      /* ── ONE restrained accent: editorial gold ── */
+      --gold:        #c9a24b;
+      --gold-bright: #e0bd6a;
+      --gold-soft:   rgba(201,162,75,0.12);
+      --gold-line:   rgba(201,162,75,0.30);
+
+      /* ── Rules & structure ── */
+      --line:        rgba(255,255,255,0.07);
+      --line-2:      rgba(255,255,255,0.11);
+      --line-3:      rgba(255,255,255,0.16);
+
+      /* ── Status ── */
+      --live:        #5fd08a;
+      --live-soft:   rgba(95,208,138,0.12);
+      --danger:      #e57373;
+      --danger-soft: rgba(220,38,38,0.07);
+      --danger-line: rgba(220,38,38,0.30);
+
+      --radius:      10px;
+      --radius-sm:   7px;
+      --maxw:        1320px;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Tajawal', sans-serif;
+      font-size: 15px;
+      line-height: 1.65;
+      min-height: 100vh;
+      -webkit-font-smoothing: antialiased;
+      text-rendering: optimizeLegibility;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { display: block; max-width: 100%; }
+    button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+    svg { display: block; }
+
+    .ico { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+    .ico-sm { width: 15px; height: 15px; }
+
+    /* ════════════════════════════════════════════════
+       NAVBAR — identical to list page
+    ════════════════════════════════════════════════ */
+    .navbar {
+      position: sticky; top: 0; z-index: 100;
+      height: 68px;
+      display: flex; align-items: center; gap: 28px;
+      padding: 0 40px;
+      background: rgba(10,10,11,0.82);
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      border-bottom: 1px solid var(--line);
+    }
+    .nav-logo {
+      font-family: 'Cinzel', serif;
+      font-size: 22px; font-weight: 700;
+      direction: ltr; letter-spacing: 6px; line-height: 1;
+      flex-shrink: 0; padding-right: 4px;
+    }
+    .nav-logo .a { color: var(--gold); }
+
+    .nav-search-wrap { flex: 1; display: flex; justify-content: center; }
+    .nav-search { position: relative; width: 100%; max-width: 440px; }
+    .nav-search input {
+      width: 100%; height: 42px; padding: 0 44px 0 16px;
+      background: var(--surface-2);
+      color: var(--text);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius-sm);
+      font-family: 'Tajawal', sans-serif; font-size: 14.5px; outline: none;
+      transition: border-color .2s, background .2s, box-shadow .2s;
+    }
+    .nav-search input::placeholder { color: var(--text-muted); }
+    .nav-search input:focus {
+      border-color: var(--gold-line);
+      background: var(--surface-3);
+      box-shadow: 0 0 0 3px var(--gold-soft);
+    }
+    .nav-search-btn {
+      position: absolute; top: 0; right: 0; height: 42px; width: 44px;
+      display: flex; align-items: center; justify-content: center;
+      color: var(--text-muted); transition: color .2s;
+    }
+    .nav-search:focus-within .nav-search-btn { color: var(--gold); }
+
+    .nav-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+    .nav-link {
+      padding: 8px 14px; font-size: 14.5px; font-weight: 500;
+      color: var(--text-dim); border-radius: var(--radius-sm);
+      transition: color .18s, background .18s;
+    }
+    .nav-link:hover { color: var(--text); background: var(--surface-2); }
+
+    .nav-dropdown { position: relative; }
+    .nav-dropdown-toggle {
+      display: flex; align-items: center; gap: 6px;
+      padding: 8px 14px; font-size: 14.5px; font-weight: 500;
+      color: var(--text-dim); border-radius: var(--radius-sm);
+      transition: color .18s, background .18s;
+    }
+    .nav-dropdown-toggle::after {
+      content: ""; width: 6px; height: 6px;
+      border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor;
+      transform: rotate(45deg); margin-top: -3px; opacity: .7;
+    }
+    .nav-dropdown:hover .nav-dropdown-toggle { color: var(--text); background: var(--surface-2); }
+    .nav-dropdown-menu {
+      position: absolute; top: calc(100% + 10px); right: 0;
+      min-width: 190px; padding: 7px;
+      background: var(--surface-2);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 60px rgba(0,0,0,.6);
+      opacity: 0; visibility: hidden; transform: translateY(-6px);
+      transition: opacity .18s, transform .18s, visibility .18s;
+    }
+    .nav-dropdown:hover .nav-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+    .nav-dropdown-menu a {
+      display: flex; align-items: center; gap: 9px;
+      padding: 9px 12px; font-size: 14px; color: var(--text-dim);
+      border-radius: var(--radius-sm); transition: background .15s, color .15s;
+    }
+    .nav-dropdown-menu a:hover { background: var(--surface-3); color: var(--text); }
+
+    .nav-sep { width: 1px; height: 24px; background: var(--line-2); margin: 0 6px; }
+    .nav-actions { display: flex; align-items: center; gap: 6px; }
+    .nav-actions a {
+      padding: 8px 14px; font-size: 14.5px; font-weight: 500;
+      color: var(--text-dim); border-radius: var(--radius-sm);
+      transition: color .18s, background .18s;
+    }
+    .nav-actions a:hover { color: var(--text); background: var(--surface-2); }
+    .btn-signup {
+      background: var(--gold) !important; color: #1a1408 !important;
+      font-weight: 700 !important;
+    }
+    .btn-signup:hover { background: var(--gold-bright) !important; }
+
+    /* ════════════════════════════════════════════════
+       PAGE LAYOUT
+    ════════════════════════════════════════════════ */
+    .page-wrap {
+      max-width: 920px;
+      margin: 0 auto;
+      padding: 36px 40px 56px;
+    }
+
+    .btn-back {
+      display: inline-flex; align-items: center; gap: 8px;
+      margin-bottom: 24px;
+      padding: 9px 16px;
+      background: var(--surface-2);
+      color: var(--text-dim);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius-sm);
+      font-size: 13.5px; font-weight: 500;
+      transition: color .18s, border-color .18s, background .18s;
+    }
+    .btn-back:hover { color: var(--text); border-color: var(--gold-line); background: var(--surface-3); }
+
+    /* ════════════════════════════════════════════════
+       DETAIL CARD
+    ════════════════════════════════════════════════ */
+    .detail-card {
+      background: var(--surface);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+
+    /* ── POSTER ── */
+    .poster-wrap { position: relative; background: #000; }
+    .poster-wrap img { width: 100%; height: 580px; object-fit: cover; display: block; }
+    .poster-overlay {
+      position: absolute; inset: 0;
+      background: linear-gradient(to top, rgba(0,0,0,0.96) 0%, rgba(0,0,0,0.35) 55%, transparent 100%);
+    }
+    .poster-text { position: absolute; bottom: 0; left: 0; right: 0; padding: 36px 36px; }
+    .poster-title {
+      font-family: 'Tajawal', sans-serif;
+      font-size: clamp(1.8rem, 4vw, 2.8rem);
+      font-weight: 800; letter-spacing: -0.5px;
+      color: var(--gold);
+      margin-bottom: 6px; line-height: 1.2;
+    }
+    .poster-en { font-size: 0.98rem; color: var(--text-dim); margin-bottom: 3px; }
+    .poster-orig { font-size: 0.85rem; color: var(--text-muted); }
+
+    /* ── BODY ── */
+    .detail-body { padding: 32px 36px; }
+
+    /* ── META GRID ── */
+    .meta-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr);
+      gap: 10px; margin-bottom: 30px;
+    }
+    @media(min-width:600px){ .meta-grid { grid-template-columns: repeat(4,1fr); } }
+    .meta-box {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 18px 10px; text-align: center;
+    }
+    .meta-label {
+      font-family: 'Cinzel', serif;
+      font-size: 10px; color: var(--gold);
+      letter-spacing: 2px; text-transform: uppercase;
+      display: block; margin-bottom: 6px;
+    }
+    .meta-value { font-size: 1.1rem; font-weight: 700; color: var(--text); }
+
+    /* ── SECTION TITLE ── */
+    .section-title {
+      font-family: 'Cinzel', serif;
+      font-size: 13px; color: var(--gold);
+      margin-bottom: 14px; padding-bottom: 10px;
+      border-bottom: 1px solid var(--line);
+      letter-spacing: 1.5px; text-transform: uppercase;
+    }
+
+    /* ── GENRES ── */
+    .genres-wrap { display: flex; gap: 7px; flex-wrap: wrap; margin-bottom: 28px; }
+    .genre-pill {
+      font-size: 13.5px; padding: 7px 15px; border-radius: 999px;
+      background: var(--gold-soft); color: var(--gold);
+      border: 1px solid var(--gold-line);
+    }
+
+    /* ── DESCRIPTION ── */
+    .description-text { font-size: 15px; line-height: 1.95; color: var(--text); margin-bottom: 28px; }
+
+    .section-divider { height: 1px; background: var(--line); margin: 26px 0; }
+
+    /* ════════════════════════════════════════════════
+       SAVE WIDGET — gold-only
+    ════════════════════════════════════════════════ */
+    .save-widget {
+      background: var(--surface-2);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      padding: 15px 18px;
+      display: flex; align-items: center; justify-content: space-between;
+      gap: 12px; flex-wrap: wrap;
+    }
+    .save-widget-left { display: flex; align-items: center; gap: 11px; }
+    .save-status-icon { font-size: 17px; flex-shrink: 0; }
+    .save-status-text strong { display: block; font-size: 13px; font-weight: 700; color: var(--text); }
+    .save-status-text span { font-size: 12px; color: var(--text-dim); }
+
+    .save-type-pill {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 3px 9px; border-radius: 999px;
+      font-size: 10px; font-weight: 700;
+    }
+    .pill-watchlist { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); }
+    .pill-favorites { background: var(--gold-soft); border: 1px solid var(--gold-line); color: var(--gold); }
+    .pill-completed { background: var(--live-soft); border: 1px solid rgba(95,208,138,0.35); color: var(--live); }
+
+    .save-actions { display: flex; gap: 7px; flex-wrap: wrap; align-items: center; }
+
+    .btn-save-primary, .btn-save-change {
+      display: inline-flex; align-items: center; gap: 5px;
+      padding: 7px 15px;
+      background: transparent; color: var(--text-dim);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius-sm);
+      font-size: 12px; font-weight: 700;
+      transition: background .15s, border-color .15s, color .15s;
+    }
+    .btn-save-primary:hover, .btn-save-change:hover {
+      background: var(--gold-soft); border-color: var(--gold-line); color: var(--gold);
+    }
+
+    .btn-save-remove {
+      display: inline-flex; align-items: center; gap: 4px;
+      padding: 7px 12px;
+      background: transparent; color: var(--text-muted);
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+      font-size: 12px;
+      transition: color .15s, border-color .15s, background .15s;
+    }
+    .btn-save-remove:hover { color: var(--danger); border-color: var(--danger-line); background: var(--danger-soft); }
+
+    .save-dropdown { position: relative; }
+    .save-dropdown-menu {
+      display: none;
+      position: absolute; top: calc(100% + 6px); right: 0;
+      background: var(--surface-2);
+      border: 1px solid var(--line-2);
+      border-radius: var(--radius); overflow: hidden; min-width: 165px;
+      z-index: 50; padding: 6px;
+      box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    }
+    .save-dropdown.open .save-dropdown-menu { display: block; }
+    .save-dropdown-item {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px; border-radius: var(--radius-sm);
+      font-size: 13px; color: var(--text-dim);
+      transition: background .12s, color .12s;
+    }
+    .save-dropdown-item:hover { background: var(--surface-3); color: var(--text); }
+
+    /* ════════════════════════════════════════════════
+       WATCH LINKS — gold-only
+    ════════════════════════════════════════════════ */
+    .watch-grid { display: grid; grid-template-columns: 1fr; gap: 16px; }
+    @media(min-width:640px){ .watch-grid { grid-template-columns: repeat(2,1fr); } }
+
+    .watch-card {
+      background: var(--surface-2);
+      border: 1px solid var(--line-2);
+      border-left: 3px solid var(--gold-line);
+      border-radius: var(--radius-sm);
+      overflow: hidden;
+      transition: border-color .22s, transform .22s, box-shadow .22s;
+    }
+    .watch-card:hover {
+      border: 1px solid var(--gold-line);
+      border-left: 3px solid var(--gold);
+      transform: translateY(-2px);
+      box-shadow: 0 8px 24px rgba(0,0,0,.5), 0 0 0 0.5px var(--gold-soft);
+    }
+    .watch-card-inner { padding: 18px 18px 16px; }
+
+    .watch-site-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+    .watch-site-name { font-size: 18px; font-weight: 700; color: var(--text); }
+    .watch-site-meta { font-size: 12px; color: var(--text-dim); margin-top: 2px; }
+    .episodes-pill {
+      padding: 4px 10px;
+      background: var(--surface-3);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      font-size: 11px; color: var(--text-dim);
+    }
+
+    .badges-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 12px; }
+    .badge {
+      font-size: 11px; padding: 4px 10px; border-radius: 999px;
+      background: var(--surface-3); color: var(--text-dim); border: 1px solid var(--line);
+    }
+    .badge-pos { color: var(--live); background: var(--live-soft); border-color: rgba(95,208,138,0.20); }
+    .badge-neg { color: var(--danger); background: var(--danger-soft); border-color: var(--danger-line); }
+
+    .btn-watch {
+      display: block; width: 100%;
+      background: transparent;
+      color: var(--gold);
+      border-top: 1px solid var(--gold-line);
+      border-bottom: 1px solid var(--gold-line);
+      border-right: 1px solid var(--gold-line);
+      border-left: 3px solid var(--gold);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      padding: 9px 16px;
+      font-size: 14px; font-weight: 700;
+      text-align: center;
+      transition: background .15s, color .15s;
+    }
+    .btn-watch:hover { background: var(--gold-soft); color: var(--gold-bright); }
+
+    .empty-links {
+      padding: 48px 20px; text-align: center;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-sm);
+    }
+    .empty-links p { color: var(--text-dim); font-size: 14px; }
+    .empty-links span { color: var(--text-muted); font-size: 12px; display: block; margin-top: 6px; }
+
+    /* ════════════════════════════════════════════════
+       FOOTER & TOAST
+    ════════════════════════════════════════════════ */
+    .footer {
+      border-top: 1px solid var(--line);
+      padding: 24px; text-align: center;
+      color: var(--text-muted); font-size: 11px;
+      letter-spacing: 2px; font-family: 'Cinzel', serif;
+    }
+    .toast {
+      position: fixed; bottom: 24px; left: 50%;
+      transform: translateX(-50%) translateY(80px);
+      background: var(--surface-2); border: 1px solid var(--gold-line);
+      border-radius: var(--radius-sm); padding: 12px 20px;
+      font-size: 13px; color: var(--gold);
+      z-index: 999; transition: transform .3s; white-space: nowrap;
+      box-shadow: 0 24px 60px rgba(0,0,0,.6);
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    @media (max-width: 720px) {
+      .navbar { padding: 0 18px; gap: 14px; }
+      .nav-right .nav-link, .nav-dropdown { display: none; }
+      .page-wrap { padding: 24px 18px 40px; }
+      .detail-body { padding: 24px 20px; }
+      .poster-wrap img { height: 420px; }
+    }
+    </style>
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-1NYY4T2LXG"></script>
+    <script>
+      window.dataLayer=window.dataLayer||[];
+      function gtag(){dataLayer.push(arguments);}
+      gtag('js',new Date());
+      gtag('config','G-1NYY4T2LXG');
+    </script>
+</head>
+<body>
+
+<!-- ══ NAVBAR — identical to list page ══ -->
+<nav class="navbar">
+  <a href="{% url 'tafarraj:drama_list' %}" class="nav-logo">
+    T<span class="a">A</span>FARRAJ
+  </a>
+
+  <div class="nav-search-wrap">
+    <form class="nav-search" method="get" action="{% url 'tafarraj:drama_list' %}">
+      <input type="text" name="search"
+             placeholder="ابحث عن مسلسل، ممثل، نوع..." aria-label="بحث">
+      <button type="submit" class="nav-search-btn" aria-label="بحث">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
+
+  <div class="nav-right">
+    <a href="{% url 'tafarraj:drama_list' %}" class="nav-link">الرئيسية</a>
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-toggle" aria-haspopup="true">الدراما</button>
+      <div class="nav-dropdown-menu" role="menu">
+        <a href="{% url 'tafarraj:drama_list' %}?countries=korean"   role="menuitem">🇰🇷 كورية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=chinese"  role="menuitem">🇨🇳 صينية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=japanese" role="menuitem">🇯🇵 يابانية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=thai"     role="menuitem">🇹🇭 تايلاندية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=turkish"  role="menuitem">🇹🇷 تركية</a>
+      </div>
+    </div>
+    <div class="nav-sep" aria-hidden="true"></div>
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+        <a href="{% url 'tafarraj:my_list' %}">قائمتي</a>
+        <a href="{% url 'tafarraj:logout' %}">خروج</a>
+      {% else %}
+        <a href="{% url 'tafarraj:login' %}">دخول</a>
+        <a href="{% url 'tafarraj:signup' %}" class="btn-signup">إنشاء حساب</a>
+      {% endif %}
+    </div>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+    <a href="{% url 'tafarraj:drama_list' %}" class="btn-back">← العودة للقائمة</a>
+
+    <div class="detail-card">
+
+        <!-- POSTER -->
+        {% if drama.thumbnail_url %}
+        <div class="poster-wrap">
+            <img src="{{ drama.thumbnail_url }}" alt="{{ drama.title_arabic }}">
+            <div class="poster-overlay"></div>
+            <div class="poster-text">
+                <h1 class="poster-title">{{ drama.title_arabic }}</h1>
+                <p class="poster-en">{{ drama.title }}</p>
+                {% if drama.title_original and drama.title_original != drama.title %}
+                <p class="poster-orig">{{ drama.title_original }}</p>
+                {% endif %}
+            </div>
+        </div>
+        {% endif %}
+<div class="detail-body">
+
+    {% if not drama.thumbnail_url %}
+    <h1 style="font-size:clamp(1.8rem,4vw,2.8rem);font-weight:800;color:var(--gold);margin-bottom:6px;line-height:1.2;">{{ drama.title_arabic }}</h1>
+    <p style="font-size:0.98rem;color:var(--text-dim);margin-bottom:20px;">{{ drama.title }}</p>
+    {% endif %}
+
+    <!-- ① META -->
+    <div class="meta-grid" style="margin-bottom:28px;">
+        <div class="meta-box">
+            <span class="meta-label">الحالة</span>
+            <span class="meta-value">{{ drama.get_status_display }}</span>
+        </div>
+        <div class="meta-box">
+            <span class="meta-label">الحلقات</span>
+            <span class="meta-value">{{ drama.total_episodes }}</span>
+        </div>
+        <div class="meta-box">
+            <span class="meta-label">السنة</span>
+            <span class="meta-value">{{ drama.release_year }}</span>
+        </div>
+        <div class="meta-box">
+            <span class="meta-label">البلد</span>
+            <span class="meta-value">{{ drama.get_country_display }}</span>
+        </div>
+    </div>
+
+    <!-- ② WATCH LINKS -->
+    <h3 class="section-title">روابط المشاهدة</h3>
+
+    {% if drama.links.exists %}
+    <div class="watch-grid" style="margin-bottom:32px;">
+        {% for link in drama.links.all %}
+        <div class="watch-card">
+            <div class="watch-card-inner">
+                <div class="watch-site-row">
+                    <div>
+                        <div class="watch-site-name">{{ link.website_name }}</div>
+                        <div class="watch-site-meta">{{ link.get_language_display }}</div>
+                    </div>
+                    {% if link.episodes_available > 0 %}
+                    <div class="episodes-pill">{{ link.episodes_available }} حلقة</div>
+                    {% endif %}
+                </div>
+
+                <div class="badges-row">
+                    {% if link.is_free %}
+                    <span class="badge badge-pos">✓ مجاني</span>
+                    {% else %}
+                    <span class="badge badge-neg">✕ مدفوع</span>
+                    {% endif %}
+
+                    {% if link.has_arabic_subtitles %}
+                    <span class="badge badge-pos">ترجمة عربية</span>
+                    {% else %}
+                    <span class="badge badge-neg">بدون ترجمة</span>
+                    {% endif %}
+
+                    {% if link.ads_level == 'none' %}
+                    <span class="badge">بدون إعلانات</span>
+                    {% elif link.ads_level == 'few' %}
+                    <span class="badge">إعلانات قليلة</span>
+                    {% elif link.ads_level == 'moderate' %}
+                    <span class="badge badge-neg">إعلانات متوسطة</span>
+                    {% elif link.ads_level == 'heavy' %}
+                    <span class="badge badge-neg">إعلانات كثيرة</span>
+                    {% endif %}
+
+                    {% if link.episodes_completeness == 'complete' %}
+                    <span class="badge badge-pos">حلقات مكتملة</span>
+                    {% elif link.episodes_completeness == 'missing_some' %}
+                    <span class="badge badge-neg">تنقصها حلقات</span>
+                    {% elif link.episodes_completeness == 'incomplete' %}
+                    <span class="badge badge-neg">غير مكتملة</span>
+                    {% endif %}
+                </div>
+
+                <a href="{{ link.url }}" target="_blank" class="btn-watch"
+                   onclick="recordWatchClick({{ drama.pk }}, '{{ link.website_name|escapejs }}')">
+                    شاهد الآن
+                </a>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    {% else %}
+    <div class="empty-links" style="margin-bottom:32px;">
+        <p>لا توجد روابط متاحة حالياً</p>
+        <span>سيتم إضافة الروابط قريباً</span>
+    </div>
+    {% endif %}
+
+    <div class="section-divider"></div>
+
+    <!-- ③ SAVE WIDGET — fully intact -->
+    {% if user.is_authenticated %}
+    <div class="save-widget" id="save-widget">
+        <div class="save-widget-left">
+            {% if is_saved %}
+
+            <div class="save-status-text">
+                <strong>محفوظ في قائمتك</strong>
+                <span>
+                    <span class="save-type-pill
+                        {% if save_type == 'watchlist' %}pill-watchlist
+                        {% elif save_type == 'favorites' %}pill-favorites
+                        {% elif save_type == 'completed' %}pill-completed
+                        {% endif %}"
+                        id="save-type-display">
+                        {% if save_type == 'watchlist' %} قائمة المشاهدة
+                        {% elif save_type == 'favorites' %} المفضلة
+                        {% elif save_type == 'completed' %} شاهدته
+                        {% endif %}
+                    </span>
+                </span>
+            </div>
+            {% else %}
+            <div class="save-status-icon">🤍</div>
+            <div class="save-status-text">
+                <strong>لم يُحفظ بعد</strong>
+                <span>أضفه إلى قائمتك</span>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="save-actions">
+            {% if is_saved %}
+            <div class="save-dropdown" id="change-dropdown">
+                <button class="btn-save-change" onclick="toggleDropdown()">نقل إلى ▾</button>
+                <div class="save-dropdown-menu">
+                    <div class="save-dropdown-item" onclick="saveToList('watchlist')"> قائمة المشاهدة</div>
+                    <div class="save-dropdown-item" onclick="saveToList('favorites')"> المفضلة</div>
+                    <div class="save-dropdown-item" onclick="saveToList('completed')"> شاهدته</div>
+                </div>
+            </div>
+            <button class="btn-save-remove" onclick="removeSave()">✕ إزالة</button>
+            {% else %}
+            <div class="save-dropdown" id="change-dropdown">
+                <button class="btn-save-primary" onclick="toggleDropdown()">+ حفظ ▾</button>
+                <div class="save-dropdown-menu">
+                    <div class="save-dropdown-item" onclick="saveToList('watchlist')"> قائمة المشاهدة</div>
+                    <div class="save-dropdown-item" onclick="saveToList('favorites')"> المفضلة</div>
+                    <div class="save-dropdown-item" onclick="saveToList('completed')"> شاهدته</div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="section-divider"></div>
+
+    <!-- ④ SYNOPSIS -->
+    <h3 class="section-title">القصة</h3>
+    <p class="description-text">{{ drama.description_arabic }}</p>
+
+    <!-- ⑤ GENRES -->
+    {% if drama.genres.exists %}
+    <div class="section-divider"></div>
+    <h3 class="section-title">الأنواع</h3>
+    <div class="genres-wrap">
+        {% for genre in drama.genres.all %}
+        <span class="genre-pill">{{ genre.name_arabic }}</span>
+        {% endfor %}
+    </div>
+    {% endif %}
+<div class="footer">TAFARRAJ · عالمٌ من الدراما الآسيوية بين يديك</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DRAMA_ID = {{ drama.pk }};
+const CSRF_TOKEN = '{{ csrf_token }}';
+
+function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function toggleDropdown() {
+    document.getElementById('change-dropdown').classList.toggle('open');
+}
+document.addEventListener('click', function(e) {
+    if (!e.target.closest('#change-dropdown')) {
+        document.getElementById('change-dropdown')?.classList.remove('open');
+    }
+});
+
+async function saveToList(listType) {
+    document.getElementById('change-dropdown').classList.remove('open');
+    try {
+        const resp = await fetch('/api/save-drama/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+            body: JSON.stringify({ drama_id: DRAMA_ID, list_type: listType, action: 'save' })
+        });
+        const data = await resp.json();
+        if (data.status === 'saved') {
+            const labels = { 'watchlist': ' قائمة المشاهدة', 'favorites': ' المفضلة', 'completed': ' شاهدته' };
+            const pill = document.getElementById('save-type-display');
+            if (pill) { pill.textContent = labels[listType] || listType; }
+            showToast('✓ تم الحفظ في ' + (labels[listType] || listType));
+            setTimeout(() => location.reload(), 1200);
+        }
+    } catch(e) { showToast('حدث خطأ، حاول مجدداً'); }
+}
+
+async function removeSave() {
+    try {
+        const resp = await fetch('/api/save-drama/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+            body: JSON.stringify({ drama_id: DRAMA_ID, action: 'remove' })
+        });
+        const data = await resp.json();
+        if (data.status === 'removed') {
+            showToast('تم إزالة المسلسل من قائمتك');
+            setTimeout(() => location.reload(), 1200);
+        }
+    } catch(e) { showToast('حدث خطأ، حاول مجدداً'); }
+}
+
+function recordWatchClick(dramaId, siteName) {
+    fetch('/api/watch-click/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
+        body: JSON.stringify({ drama_id: dramaId, site_name: siteName }),
+        keepalive: true
+    });
+}
+</script>
+</body>
+</html>

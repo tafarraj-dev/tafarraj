@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>تسجيل الدخول - تفرج</title>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@400;500;700&family=Cinzel:wght@600&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --gold: #C8A84B;
+  --gold-dark: #3D2E00;
+  --gold-glow: rgba(200,168,75,0.08);
+  --bg: #080808;
+  --bg2: #111111;
+  --border: rgba(255,255,255,0.06);
+  --border-gold: rgba(200,168,75,0.4);
+  --text: #e0e0e0;
+  --text-dim: #666;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+}
+.box {
+  background: var(--bg2);
+  border: 0.5px solid var(--border-gold);
+  border-radius: 12px;
+  padding: 40px 36px;
+  width: 100%;
+  max-width: 380px;
+}
+.logo {
+  font-family: 'Cinzel', serif;
+  font-size: 22px;
+  color: var(--gold);
+  letter-spacing: 6px;
+  text-align: center;
+  margin-bottom: 8px;
+}
+.sub {
+  text-align: center;
+  font-size: 13px;
+  color: var(--text-dim);
+  margin-bottom: 32px;
+}
+.field { margin-bottom: 16px; }
+label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-dim);
+  margin-bottom: 6px;
+  letter-spacing: 0.5px;
+}
+input {
+  width: 100%;
+  height: 44px;
+  padding: 0 16px;
+  background: var(--bg);
+  border: 0.5px solid var(--border);
+  border-radius: 8px;
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 14px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+input:focus { border-color: var(--gold); }
+.btn {
+  width: 100%;
+  height: 44px;
+  background: var(--gold);
+  color: var(--gold-dark);
+  border: none;
+  border-radius: 8px;
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: opacity 0.2s;
+}
+.btn:hover { opacity: 0.9; }
+.link {
+  text-align: center;
+  margin-top: 20px;
+  font-size: 13px;
+  color: var(--text-dim);
+}
+.link a { color: var(--gold); text-decoration: none; }
+.error {
+  background: rgba(255,80,80,0.1);
+  border: 0.5px solid rgba(255,80,80,0.3);
+  border-radius: 6px;
+  padding: 10px 14px;
+  font-size: 12px;
+  color: #ff6b6b;
+  margin-bottom: 16px;
+}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">TAFARRAJ</div>
+  <div class="sub">أهلاً بعودتك</div>
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="error">{{ msg }}</div>
+  {% endfor %}
+  {% endif %}
+
+  <form method="post">
+    {% csrf_token %}
+    <div class="field">
+      <label>اسم المستخدم أو البريد الإلكتروني</label>
+      <input type="text" name="identifier" required autofocus>
+    </div>
+    <div class="field">
+      <label>كلمة المرور</label>
+      <input type="password" name="password" required>
+    </div>
+    <button type="submit" class="btn">دخول</button>
+  </form>
+
+  <div class="link">
+    ليس لديك حساب؟ <a href="{% url 'tafarraj:signup' %}">سجّل الآن</a>
+  </div>
+</div>
+</body>
+</html>

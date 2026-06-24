@@ -20,7 +20,6 @@ media/
 
 # Scraper output/scratch data (not code)
 *.json
-*.html
 *.csv
 project_structure.txt
 cloudinary_urls.txt

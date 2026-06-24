@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>أداة إضافة روابط المشاهدة</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Amiri:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Amiri', serif; background: #0B0B0B; color: #E5E5E5; }
+        .gold { color: #C9A24D; }
+        .card { background: #1A1A1A; border: 1px solid rgba(201,162,77,0.3); }
+        .btn-gold { background: #C9A24D; color: #0B0B0B; font-weight: bold; padding: 8px 16px; border-radius: 8px; cursor: pointer; border: none; }
+        .btn-outline { background: transparent; color: #C9A24D; border: 1px solid #C9A24D; font-weight: bold; padding: 8px 16px; border-radius: 8px; cursor: pointer; }
+        .progress-bar { height: 4px; background: rgba(201,162,77,0.2); border-radius: 2px; }
+        .progress-fill { height: 100%; background: #C9A24D; border-radius: 2px; transition: width 0.3s; }
+
+        .btn-auto {
+            background: rgba(139, 92, 246, 0.15);
+            border: 1px solid rgba(139, 92, 246, 0.5);
+            color: #a78bfa;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-auto:hover { background: rgba(139, 92, 246, 0.3); }
+        .btn-auto:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .btn-open-all {
+            background: rgba(34, 197, 94, 0.15);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            color: #4ade80;
+            font-weight: bold;
+            padding: 6px 14px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-open-all:hover { background: rgba(34, 197, 94, 0.3); }
+
+        .badge-high    { color: #4ade80; font-size: 11px; }
+        .badge-low     { color: #facc15; font-size: 11px; }
+        .badge-notfound { color: #f87171; font-size: 11px; }
+
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spinner { display: inline-block; width: 12px; height: 12px; border: 2px solid rgba(167,139,250,0.3); border-top-color: #a78bfa; border-radius: 50%; animation: spin 0.7s linear infinite; vertical-align: middle; margin-left: 6px; }
+
+        @keyframes flashGreen { 0%,100% { border-color: rgba(201,162,77,0.3); } 50% { border-color: #4ade80; } }
+        .auto-filled { animation: flashGreen 0.6s ease; border-color: #a78bfa !important; }
+    </style>
+</head>
+<body class="min-h-screen p-6">
+
+<div class="max-w-4xl mx-auto">
+
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-bold gold mb-2">أداة إضافة روابط المشاهدة</h1>
+        <p style="color:#999">ابحث عن رابط كل مسلسل في المواقع المختلفة وأضفه بسرعة</p>
+    </div>
+
+    <div class="card rounded-xl p-4 mb-6 flex gap-4 items-center flex-wrap">
+        <label class="gold font-bold">البلد:</label>
+        <div class="flex gap-2 flex-wrap">
+            <button onclick="filterCountry('all')" id="btn-all" class="btn-gold">الكل</button>
+            <button onclick="filterCountry('korean')" id="btn-korean" class="btn-outline">كوري</button>
+            <button onclick="filterCountry('chinese')" id="btn-chinese" class="btn-outline">صيني</button>
+            <button onclick="filterCountry('japanese')" id="btn-japanese" class="btn-outline">ياباني</button>
+            <button onclick="filterCountry('turkish')" id="btn-turkish" class="btn-outline">تركي</button>
+        </div>
+        <span style="color:#999" id="progress-text" class="mr-auto">0 / 0 مكتمل</span>
+    </div>
+
+    <div class="progress-bar mb-6">
+        <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+
+    <div id="drama-list"></div>
+</div>
+
+<script>
+const SITES = {
+    asian: [
+        { name: 'Aradrama',          searchUrl: 'https://aradramatv.cc/?s=',             is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+        { name: 'Asia2TV',           searchUrl: 'https://asia2tv.com/?s=',               is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+        { name: 'Best Drama',        searchUrl: 'https://best-drama.com/?s=',            is_free: true,  has_arabic_subtitles: true, ads_level: 'moderate', episodes_completeness: 'complete' },
+        { name: 'ArabSeed',          searchUrl: 'https://arabseed.show/?s=',             is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+        { name: 'Viki',              searchUrl: 'https://www.viki.com/explore?q=',       is_free: false, has_arabic_subtitles: true, ads_level: 'moderate', episodes_completeness: 'complete' },
+        { name: 'WeTV',              searchUrl: 'https://wetv.vip/ar/search?keyword=',   is_free: false, has_arabic_subtitles: true, ads_level: 'none',     episodes_completeness: 'complete' },
+        { name: 'HiTV',              searchUrl: 'https://home.hitv.vip/ar-ae/search?keyword=', is_free: false, has_arabic_subtitles: true, ads_level: 'few', episodes_completeness: 'complete' },
+        { name: 'Shahid Mosalsalat', searchUrl: 'https://w.shahidmosalsalat.me/?s=',    is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+    ],
+    turkish: [
+        { name: 'قصة عشق',           searchUrl: 'https://3sk.cam/?s=',                  is_free: true,  has_arabic_subtitles: true, ads_level: 'moderate', episodes_completeness: 'complete' },
+        { name: 'Qrmzi TV',          searchUrl: 'https://www.qrmzi.tv/?s=',             is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+        { name: 'ArabSeed',          searchUrl: 'https://arabseed.show/?s=',            is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+        { name: 'Shahid Mosalsalat', searchUrl: 'https://w.shahidmosalsalat.me/?s=',   is_free: true,  has_arabic_subtitles: true, ads_level: 'heavy',    episodes_completeness: 'complete' },
+    ]
+};
+
+const ADS_LABELS = { 'none': 'بدون إعلانات', 'few': 'إعلانات قليلة', 'moderate': 'إعلانات متوسطة', 'heavy': 'إعلانات كثيرة' };
+const CONFIDENCE_LABELS = { 'high': '✅ موثوق', 'low': '⚠️ غير مؤكد', 'not_found': '❌ غير موجود' };
+const CONFIDENCE_CLASSES = { 'high': 'badge-high', 'low': 'badge-low', 'not_found': 'badge-notfound' };
+
+let allDramas = [];
+let currentFilter = 'all';
+let savedLinks = JSON.parse(localStorage.getItem('savedLinks') || '{}');
+let autoResults = {};
+
+async function loadDramas() {
+    try {
+        const response = await fetch('/api/top-dramas/');
+        const data = await response.json();
+        allDramas = data.dramas;
+        renderDramas();
+    } catch(e) {
+        console.error('Failed to load dramas', e);
+    }
+}
+
+function filterCountry(country) {
+    currentFilter = country;
+    ['all','korean','chinese','japanese','turkish'].forEach(c => {
+        const btn = document.getElementById('btn-' + c);
+        if (btn) btn.className = c === country ? 'btn-gold' : 'btn-outline';
+    });
+    renderDramas();
+}
+
+function getSites(country) {
+    return country === 'turkish' ? SITES.turkish : SITES.asian;
+}
+
+function getCookie(name) {
+    let cookieValue = null;
+    if (document.cookie && document.cookie !== '') {
+        document.cookie.split(';').forEach(function(cookie) {
+            const c = cookie.trim();
+            if (c.startsWith(name + '=')) cookieValue = decodeURIComponent(c.substring(name.length + 1));
+        });
+    }
+    return cookieValue;
+}
+
+function getEnglishTitle(title) {
+    if (!title) return '';
+    if (title.includes('/')) {
+        for (let part of title.split('/')) {
+            if (/[a-zA-Z]/.test(part)) return part.trim();
+        }
+    }
+    return /[a-zA-Z]/.test(title) ? title.trim() : '';
+}
+
+function getArabicTitle(title_arabic, title) {
+    if (title_arabic) {
+        if (title_arabic.includes('/')) {
+            for (let part of title_arabic.split('/')) {
+                if (/[\u0600-\u06FF]/.test(part)) return part.trim();
+            }
+        }
+        if (/[\u0600-\u06FF]/.test(title_arabic)) return title_arabic.trim();
+    }
+    if (title && title.includes('/')) {
+        for (let part of title.split('/')) {
+            if (/[\u0600-\u06FF]/.test(part)) return part.trim();
+        }
+    }
+    return '';
+}
+
+// ── Open All Search Tabs ──────────────────────────────────────────────────────
+
+function openAllSearchTabs(dramaId) {
+    const drama = allDramas.find(d => d.id === dramaId);
+    if (!drama) return;
+
+    const sites = getSites(drama.country);
+    const englishTitle = getEnglishTitle(drama.title);
+    const arabicTitle = getArabicTitle(drama.title_arabic, drama.title);
+
+    const urls = [];
+    sites.forEach(function(site) {
+        if (arabicTitle)  urls.push({ label: site.name + ' عربي',   url: site.searchUrl + encodeURIComponent(arabicTitle) });
+        if (englishTitle) urls.push({ label: site.name + ' English', url: site.searchUrl + encodeURIComponent(englishTitle) });
+    });
+
+    const container = document.getElementById('quick-links-' + dramaId);
+    container.innerHTML = urls.map(u =>
+        `<a href="${u.url}" target="_blank"
+            style="display:inline-block;background:rgba(34,197,94,0.15);border:1px solid rgba(34,197,94,0.4);color:#4ade80;padding:4px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">
+            🔗 ${u.label}
+        </a>`
+    ).join('');
+    container.style.display = 'flex';
+    container.style.flexWrap = 'wrap';
+    container.style.gap = '6px';
+    container.style.marginBottom = '10px';
+}
+// ── Auto Find ────────────────────────────────────────────────────────────────
+
+async function handleAutoFind(dramaId) {
+    const drama = allDramas.find(d => d.id === dramaId);
+    if (!drama) return;
+
+    const btn = document.getElementById('auto-btn-' + dramaId);
+    const statusEl = document.getElementById('auto-status-' + dramaId);
+
+    btn.disabled = true;
+    btn.innerHTML = '<span class="spinner"></span> جاري البحث...';
+    if (statusEl) statusEl.textContent = 'يبحث في كل المواقع... قد يستغرق دقيقة';
+
+    const englishTitle = getEnglishTitle(drama.title);
+    const arabicTitle = getArabicTitle(drama.title_arabic, drama.title);
+    const sites = getSites(drama.country);
+    const siteNames = sites.map(s => s.name);
+
+    try {
+        const resp = await fetch('/api/auto-find-links/', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'X-CSRFToken': getCookie('csrftoken')
+            },
+            body: JSON.stringify({
+                drama_title: englishTitle,
+                drama_title_arabic: arabicTitle,
+                sites: siteNames
+            })
+        });
+
+        const data = await resp.json();
+        if (!resp.ok) throw new Error(data.error || 'Server error');
+
+        autoResults[dramaId] = data.results;
+
+        let found = 0;
+        sites.forEach(function(site, idx) {
+            const isAsian = drama.country !== 'turkish';
+            const inputId = 'input-' + dramaId + '-' + idx + '-' + (isAsian ? 'a' : 't');
+            const badgeId = 'badge-' + dramaId + '-' + idx + '-' + (isAsian ? 'a' : 't');
+            const result = data.results[site.name];
+            if (!result) return;
+
+            const input = document.getElementById(inputId);
+            const badge = document.getElementById(badgeId);
+
+            if (result.url) {
+                if (input && !input.value.trim()) {
+                    input.value = result.url;
+                    input.classList.add('auto-filled');
+                    setTimeout(() => input.classList.remove('auto-filled'), 800);
+                }
+                found++;
+            }
+
+            if (badge) {
+                badge.textContent = CONFIDENCE_LABELS[result.confidence] || '';
+                badge.className = CONFIDENCE_CLASSES[result.confidence] || '';
+                badge.style.display = 'inline';
+            }
+        });
+
+        btn.disabled = false;
+        btn.innerHTML = '🔁 بحث مجدد';
+        if (statusEl) {
+            statusEl.textContent = found > 0
+                ? `✅ وُجد ${found} من ${sites.length} موقع — راجع الروابط ثم احفظ`
+                : '❌ لم يُعثر على روابط — جرب البحث اليدوي';
+            statusEl.style.color = found > 0 ? '#4ade80' : '#f87171';
+        }
+
+    } catch(e) {
+        btn.disabled = false;
+        btn.innerHTML = '🔍 بحث تلقائي';
+        if (statusEl) {
+            statusEl.textContent = 'خطأ في الاتصال: ' + e.message;
+            statusEl.style.color = '#f87171';
+        }
+        console.error(e);
+    }
+}
+
+// ── Save ─────────────────────────────────────────────────────────────────────
+
+function handleSave(dramaId, siteIndex, isAsian) {
+    const sites = isAsian ? SITES.asian : SITES.turkish;
+    const site = sites[siteIndex];
+    const inputId = 'input-' + dramaId + '-' + siteIndex + '-' + (isAsian ? 'a' : 't');
+    const url = document.getElementById(inputId).value.trim();
+
+    if (!url) { alert('الرجاء إدخال الرابط أولاً'); return; }
+    if (!url.startsWith('http')) { alert('الرابط يجب أن يبدأ بـ http'); return; }
+
+    if (!savedLinks[dramaId]) savedLinks[dramaId] = {};
+    savedLinks[dramaId][site.name] = { url: url };
+    localStorage.setItem('savedLinks', JSON.stringify(savedLinks));
+
+    fetch('/api/save-watch-link/', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': getCookie('csrftoken') },
+        body: JSON.stringify({
+            drama_id: dramaId,
+            website_name: site.name,
+            url: url,
+            language: 'arabic',
+            episodes_available: 0,
+            is_free: site.is_free,
+            has_arabic_subtitles: site.has_arabic_subtitles,
+            ads_level: site.ads_level,
+            episodes_completeness: site.episodes_completeness,
+        })
+    }).then(r => r.json()).then(function(data) {
+        if (data.success) {
+            document.getElementById(inputId).style.borderColor = '#4ade80';
+            const savedMsg = document.getElementById('saved-' + dramaId + '-' + siteIndex + '-' + (isAsian ? 'a' : 't'));
+            if (savedMsg) savedMsg.style.display = 'block';
+            renderDramas();
+        } else {
+            alert('خطأ: ' + (data.error || 'فشل الحفظ'));
+        }
+    }).catch(function(e) {
+        alert('خطأ في الاتصال بالسيرفر');
+        console.error(e);
+    });
+}
+
+// ── Render ────────────────────────────────────────────────────────────────────
+
+function renderDramas() {
+    const filtered = currentFilter === 'all' ? allDramas : allDramas.filter(d => d.country === currentFilter);
+    const total = filtered.length;
+    let completed = 0;
+
+    const html = filtered.map(function(drama) {
+        const sites = getSites(drama.country);
+        const isAsian = drama.country !== 'turkish';
+        const dramaLinks = savedLinks[drama.id] || {};
+        const completedSites = sites.filter(s => dramaLinks[s.name] && dramaLinks[s.name].url).length;
+        if (completedSites === sites.length) completed++;
+
+        const flags = { korean: 'KR', chinese: 'CN', japanese: 'JP', turkish: 'TR' };
+        const arabicTitle = getArabicTitle(drama.title_arabic, drama.title);
+        const englishTitle = getEnglishTitle(drama.title);
+
+        const sitesHtml = sites.map(function(site, idx) {
+            const inputId  = 'input-'  + drama.id + '-' + idx + '-' + (isAsian ? 'a' : 't');
+            const savedId  = 'saved-'  + drama.id + '-' + idx + '-' + (isAsian ? 'a' : 't');
+            const badgeId  = 'badge-'  + drama.id + '-' + idx + '-' + (isAsian ? 'a' : 't');
+            const saved = dramaLinks[site.name];
+
+            const autoResult = (autoResults[drama.id] || {})[site.name];
+            const badgeText  = autoResult ? (CONFIDENCE_LABELS[autoResult.confidence] || '') : '';
+            const badgeClass = autoResult ? (CONFIDENCE_CLASSES[autoResult.confidence] || '') : '';
+
+            const arabicSearchUrl  = arabicTitle  ? site.searchUrl + encodeURIComponent(arabicTitle)  : null;
+            const englishSearchUrl = englishTitle ? site.searchUrl + encodeURIComponent(englishTitle) : null;
+
+            const searchButtons =
+                (arabicSearchUrl  ? `<a href="${arabicSearchUrl}"  target="_blank" style="background:rgba(201,162,77,0.15);border:1px solid rgba(201,162,77,0.4);color:#C9A24D;padding:4px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">🔍 عربي</a>`   : '') +
+                (englishSearchUrl ? `<a href="${englishSearchUrl}" target="_blank" style="background:rgba(100,100,255,0.15);border:1px solid rgba(100,100,255,0.4);color:#8888ff;padding:4px 10px;border-radius:6px;font-size:12px;text-decoration:none;white-space:nowrap">🔍 English</a>` : '');
+
+            return `
+            <div style="background:rgba(255,255,255,0.03);border:1px solid rgba(201,162,77,0.1);padding:12px;border-radius:8px;margin-bottom:8px">
+                <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;flex-wrap:wrap;gap:8px">
+                    <div>
+                        <span style="color:#C9A24D;font-weight:bold;font-size:14px">${site.name}</span>
+                        <span style="color:#666;font-size:11px;margin-right:8px">${site.is_free ? '✅ مجاني' : '💰 مدفوع'} • ${ADS_LABELS[site.ads_level]}</span>
+                        <span id="${badgeId}" class="${badgeClass}" style="display:${badgeText ? 'inline' : 'none'};margin-right:6px">${badgeText}</span>
+                    </div>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap">${searchButtons}</div>
+                </div>
+                <div style="display:flex;gap:8px">
+                    <input type="url" id="${inputId}"
+                        style="background:#0B0B0B;border:1px solid ${saved ? '#4ade80' : 'rgba(201,162,77,0.3)'};color:#E5E5E5;padding:8px 12px;border-radius:8px;width:100%;font-size:13px"
+                        placeholder="الصق رابط صفحة المسلسل هنا..."
+                        value="${saved ? saved.url : ''}"
+                        dir="ltr">
+                    <button onclick="handleSave(${drama.id}, ${idx}, ${isAsian})"
+                        style="background:#C9A24D;color:#0B0B0B;font-weight:bold;padding:8px 16px;border-radius:8px;cursor:pointer;border:none;white-space:nowrap">
+                        حفظ
+                    </button>
+                </div>
+                <p id="${savedId}" style="color:#4ade80;font-size:11px;margin-top:4px;display:${saved ? 'block' : 'none'}">✅ محفوظ</p>
+            </div>`;
+        }).join('');
+
+        return `
+        <div style="background:#1A1A1A;border:1px solid rgba(201,162,77,0.3);border-radius:12px;padding:20px;margin-bottom:16px;opacity:${completedSites === sites.length ? '0.6' : '1'}">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:12px;flex-wrap:wrap;gap:8px">
+                <div>
+                    <h2 style="color:#C9A24D;font-size:18px;font-weight:bold">
+                        ${drama.title_arabic || drama.title}
+                        <span style="font-size:12px;background:rgba(201,162,77,0.2);padding:2px 6px;border-radius:4px">${flags[drama.country] || ''}</span>
+                    </h2>
+                    <p style="color:#999;font-size:13px">${drama.title}${drama.release_year ? ' • ' + drama.release_year : ''}</p>
+                </div>
+                <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px">
+                    <span style="color:${completedSites === sites.length ? '#4ade80' : '#C9A24D'};font-size:13px">
+                        ${completedSites}/${sites.length} مواقع مكتملة
+                    </span>
+                    <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end">
+                        <button id="auto-btn-${drama.id}"
+                            onclick="handleAutoFind(${drama.id})"
+                            class="btn-auto">
+                            🔍 بحث تلقائي
+                        </button>
+                        <button onclick="openAllSearchTabs(${drama.id})"
+                            class="btn-open-all">
+                            🚀 فتح كل المواقع
+                        </button>
+                    </div>
+                </div>
+            </div>
+             <div id="quick-links-${drama.id}" style="display:none"></div>
+            <p id="auto-status-${drama.id}"
+               style="color:#a78bfa;font-size:12px;margin-bottom:10px;display:${autoResults[drama.id] ? 'block' : 'none'}">
+               ${autoResults[drama.id] ? '✅ تم البحث — راجع الروابط ثم احفظ' : ''}
+            </p>
+
+            ${sitesHtml}
+        </div>`;
+    }).join('');
+
+    document.getElementById('drama-list').innerHTML = html || '<p style="color:#666;text-align:center;padding:40px">لا توجد مسلسلات</p>';
+    document.getElementById('progress-text').textContent = completed + ' / ' + total + ' مكتمل';
+    document.getElementById('progress-fill').style.width = total > 0 ? ((completed/total)*100) + '%' : '0%';
+}
+
+loadDramas();
+</script>
+</body>
+</html>
