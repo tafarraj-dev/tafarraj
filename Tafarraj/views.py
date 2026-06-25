@@ -82,19 +82,22 @@ def drama_list(request):
     if year:
         dramas = dramas.filter(release_year=year)
 
-    
+    # ✅ FIXED: added title_original to search filter and ranking
     search = request.GET.get('search')
     if search:
         dramas = dramas.filter(
             Q(title__icontains=search) |
-            Q(title_arabic__icontains=search)
+            Q(title_arabic__icontains=search) |
+            Q(title_original__icontains=search)
         ).annotate(
             search_rank=Case(
                 When(title__istartswith=search, then=0),
                 When(title_arabic__istartswith=search, then=1),
-                When(title__icontains=search, then=2),
-                When(title_arabic__icontains=search, then=3),
-                default=4,
+                When(title_original__istartswith=search, then=2),
+                When(title__icontains=search, then=3),
+                When(title_arabic__icontains=search, then=4),
+                When(title_original__icontains=search, then=5),
+                default=6,
                 output_field=IntegerField(),
             )
         ).order_by('search_rank', '-release_year')

@@ -10,25 +10,31 @@ HEADERS = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36"
 }
 
+# NOTE: dict KEY here = the country value that gets saved to Drama.country
+# if the page's own "country_raw" can't be matched in COUNTRY_MAP below.
 CATEGORY_URLS = {
     "korean":   "https://aradramatv.cc/category/serie/",
     "chinese":  "https://aradramatv.cc/category/serie/chinese-taiwan/",
     "japanese": "https://aradramatv.cc/category/serie/japanese/",
+    "thai":     "https://aradramatv.cc/category/serie/tailand/",   # <-- fixed key: "thai" not "thailand"
 }
 
-TARGET_YEARS = [2025, 2026]
+TARGET_YEARS = [2024, 2025, 2026]
 TEST_LIMIT = None
 
-# How many drama detail pages to fetch in parallel
-# Keep this at 5-8 to avoid getting rate-limited/blocked
 MAX_WORKERS = 6
 
+# Maps the Arabic country text found ON the drama page itself to your
+# Drama.country field values. If a country isn't matched here, it falls
+# back to the CATEGORY_URLS key (the dict key above) instead.
 COUNTRY_MAP = {
     "كوريا الجنوبية": "korean",
     "كوريا": "korean",
     "اليابان": "japanese",
     "الصين": "chinese",
     "تايوان": "chinese",
+    "تايلاند": "thai",       # <-- added
+    "تايلاندا": "thai",      # <-- added (alt spelling some sites use)
     "المغرب": "moroccan",
     "تركيا": "turkish",
 }
@@ -86,7 +92,7 @@ def get_drama_links(category_url, target_years, limit=None):
                     links.append(href)
 
         page += 1
-        time.sleep(0.3)  # reduced from 0.5
+        time.sleep(0.3)
 
     return links
 
@@ -185,7 +191,7 @@ def parse_drama_page(url):
     return data
 
 
-# ── NEW: process one drama link and save to DB ─────────────────────────────────
+# ── process one drama link and save to DB ─────────────────────────────────
 
 def process_link(link, country_key):
     """Fetch + parse one drama page. Returns a status string for logging."""
@@ -198,6 +204,8 @@ def process_link(link, country_key):
     if not title:
         return ("skipped", link, "no title")
 
+    # country_key is the CATEGORY_URLS dict key (e.g. "thai") used as the
+    # fallback if the page's own country text doesn't match COUNTRY_MAP.
     country = COUNTRY_MAP.get(data.get("country_raw", ""), country_key)
 
     drama, created = Drama.objects.get_or_create(
@@ -226,7 +234,7 @@ def process_link(link, country_key):
 
         WatchLink.objects.create(
             drama=drama,
-            website_name="AraДrama",
+            website_name="Aradrama",     # <-- fixed: was "AraДrama" (Cyrillic Д)
             url=link,
             language="arabic",
             episodes_available=data.get("total_episodes", 0),
@@ -248,6 +256,34 @@ def process_link(link, country_key):
             updated = True
         if updated:
             drama.save()
+
+        # Add the Aradrama watch link even if the Drama already existed
+        # (e.g. it was first added via a different site's scraper).
+        # Guard against duplicates if this script is run more than once.
+        link_added = False
+        already_has_aradrama_link = drama.links.filter(
+            website_name="Aradrama", url=link
+        ).exists()
+
+        if not already_has_aradrama_link:
+            WatchLink.objects.create(
+                drama=drama,
+                website_name="Aradrama",
+                url=link,
+                language="arabic",
+                episodes_available=data.get("total_episodes", 0),
+                is_free=True,
+                has_arabic_subtitles=True,
+                ads_level="moderate",
+                episodes_completeness="complete",
+            )
+            link_added = True
+
+        if updated and link_added:
+            return ("updated+link", title, None)
+        elif link_added:
+            return ("link_added", title, None)
+        elif updated:
             return ("updated", title, None)
         return ("exists", title, None)
 
@@ -255,7 +291,7 @@ def process_link(link, country_key):
 # ── Command ────────────────────────────────────────────────────────────────────
 
 class Command(BaseCommand):
-    help = "Scrape 2025/2026 dramas — parallel detail fetching"
+    help = "Scrape 2024/2025/2026 dramas (KR/CN/JP/TH) — parallel detail fetching"
 
     def handle(self, *args, **kwargs):
         total_added = total_updated = total_skipped = 0
@@ -265,7 +301,6 @@ class Command(BaseCommand):
             links = get_drama_links(category_url, TARGET_YEARS, limit=TEST_LIMIT)
             self.stdout.write(f"  Found {len(links)} links — fetching details in parallel...\n")
 
-            # Submit all links to thread pool; results come back as they finish
             with ThreadPoolExecutor(max_workers=MAX_WORKERS) as executor:
                 futures = {
                     executor.submit(process_link, link, country_key): link
@@ -290,6 +325,12 @@ class Command(BaseCommand):
                     elif status == "updated":
                         total_updated += 1
                         self.stdout.write(f"  UPDATED   : {name}")
+                    elif status == "link_added":
+                        total_updated += 1
+                        self.stdout.write(f"  + LINK ADDED (existing drama): {name}")
+                    elif status == "updated+link":
+                        total_updated += 1
+                        self.stdout.write(f"  UPDATED + LINK ADDED: {name}")
                     elif status == "exists":
                         self.stdout.write(f"  EXISTS    : {name}")
                     else:
