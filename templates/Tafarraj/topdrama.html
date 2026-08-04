@@ -1,0 +1,703 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NNT76NF2');</script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>أفضل الدراما - تفرّج</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Tajawal:wght@300;400;500;700;800&family=Cinzel:wght@400;500;600;700;900&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:          #120f0c;
+  --surface:     #111114;
+  --surface-2:   #16161b;
+  --surface-3:   #1c1c22;
+
+  --text:        #f1f1f4;
+  --text-dim:    #a6a6b2;
+  --text-muted:  #6b6b78;
+
+  --gold:        #c9a24b;
+  --gold-bright: #e0bd6a;
+  --gold-soft:   rgba(201,162,75,0.12);
+  --gold-line:   rgba(201,162,75,0.35);
+
+  --live:        #5fd08a;
+
+  --radius:      10px;
+  --radius-sm:   7px;
+  --radius-lg:   18px;
+}
+html { scroll-behavior: smooth; overflow-x: hidden; }
+
+body {
+  overflow-x: hidden;
+  position: relative;
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Tajawal', sans-serif;
+  font-size: 15px;
+  line-height: 1.65;
+  min-height: 100vh;
+  -webkit-font-smoothing: antialiased;
+}
+/* Full-page blurred poster backdrop, same technique as the homepage hero */
+.page-bg-img {
+  position: fixed; inset: 0; z-index: -3;
+  display: flex; overflow: hidden;
+  background: var(--bg);
+}
+.page-bg-img img {
+  flex: 1; min-width: 0; height: 100%;
+  object-fit: cover; object-position: center top;
+  filter: blur(26px) brightness(0.24) saturate(0.65);
+  transform: scale(1.12);
+}
+body::before {
+  content: "";
+  position: fixed;
+  inset: -15%;
+  z-index: -2;
+  mix-blend-mode: soft-light;
+  background:
+    radial-gradient(ellipse 900px 650px at 15% 0%, rgba(201,162,75,0.35), transparent 62%),
+    radial-gradient(ellipse 900px 750px at 85% 25%, rgba(201,162,75,0.28), transparent 62%),
+    radial-gradient(ellipse 1100px 850px at 50% 95%, rgba(180,130,55,0.24), transparent 68%);
+  filter: blur(60px);
+  pointer-events: none;
+}
+.page-bg-fade {
+  position: fixed; inset: 0; z-index: -1; pointer-events: none;
+  background: linear-gradient(to bottom, rgba(9,8,7,.55) 0%, rgba(9,8,7,.72) 45%, var(--bg) 92%);
+}
+
+a { color: inherit; text-decoration: none; }
+img { display: block; max-width: 100%; }
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+svg { display: block; }
+.ico { width: 18px; height: 18px; stroke: currentColor; stroke-width: 1.8; fill: none; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
+/* ══ NAVBAR ══ */
+.navbar {
+  position: sticky; top: 0; z-index: 100;
+  height: 68px;
+  display: flex; align-items: center; gap: 28px;
+  padding: 0 40px;
+  background: rgba(10,10,11,0.9);
+  backdrop-filter: blur(22px) saturate(140%);
+  border-bottom: 1px solid var(--line);
+}
+.nav-logo { font-family: 'Cinzel', serif; font-size: 22px; font-weight: 700; direction: ltr; letter-spacing: 6px; flex-shrink: 0; }
+.nav-logo .a { color: var(--gold); }
+.nav-primary { display: flex; align-items: center; gap: 4px; flex-shrink: 0; }
+.nav-search-wrap { flex: 1; display: flex; justify-content: center; }
+.nav-search { position: relative; width: 100%; max-width: 440px; }
+.nav-search input {
+  width: 100%; height: 42px; padding: 0 44px 0 16px;
+  background: var(--surface-2); color: var(--text);
+  border: 1px solid var(--line-2); border-radius: var(--radius-sm);
+  font-family: 'Tajawal', sans-serif; font-size: 14.5px; outline: none;
+  transition: border-color .2s, background .2s, box-shadow .2s;
+}
+.nav-search input::placeholder { color: var(--text-muted); }
+.nav-search input:focus { border-color: var(--gold-line); background: var(--surface-3); box-shadow: 0 0 0 3px var(--gold-soft); }
+.nav-search-btn { position: absolute; top: 0; right: 0; height: 42px; width: 44px; display: flex; align-items: center; justify-content: center; color: var(--text-muted); }
+.nav-search:focus-within .nav-search-btn { color: var(--gold); }
+.nav-right { display: flex; align-items: center; gap: 6px; flex-shrink: 0; }
+.nav-link { padding: 8px 14px; font-size: 14.5px; font-weight: 500; color: var(--text-dim); border-radius: var(--radius-sm); transition: color .18s, background .18s; }
+.nav-link.active { color: var(--gold); }
+.nav-link:hover { color: var(--text); background: var(--surface-2); }
+.nav-dropdown { position: relative; }
+.nav-dropdown-toggle { display: flex; align-items: center; gap: 6px; padding: 8px 14px; font-size: 14.5px; font-weight: 500; color: var(--text-dim); border-radius: var(--radius-sm); }
+.nav-dropdown-toggle::after { content: ""; width: 6px; height: 6px; border-right: 1.6px solid currentColor; border-bottom: 1.6px solid currentColor; transform: rotate(45deg); margin-top: -3px; opacity: .7; }
+.nav-dropdown:hover .nav-dropdown-toggle { color: var(--text); background: var(--surface-2); }
+.nav-dropdown-menu {
+  position: absolute; top: calc(100% + 10px); right: 0; min-width: 190px; padding: 7px;
+  background: var(--surface-2); border: 1px solid var(--line-2); border-radius: var(--radius);
+  box-shadow: 0 24px 60px rgba(0,0,0,.6); opacity: 0; visibility: hidden; transform: translateY(-6px);
+  transition: opacity .18s, transform .18s, visibility .18s;
+}
+.nav-dropdown:hover .nav-dropdown-menu { opacity: 1; visibility: visible; transform: translateY(0); }
+.nav-dropdown-menu a { display: flex; align-items: center; gap: 9px; padding: 9px 12px; font-size: 14px; color: var(--text-dim); border-radius: var(--radius-sm); }
+.nav-dropdown-menu a:hover { background: var(--surface-3); color: var(--text); }
+.nav-sep { width: 1px; height: 24px; background: var(--line-2); margin: 0 6px; }
+.nav-actions { display: flex; align-items: center; gap: 6px; }
+.nav-actions a { padding: 8px 14px; font-size: 14.5px; font-weight: 500; color: var(--text-dim); border-radius: var(--radius-sm); }
+.nav-actions a:hover { color: var(--text); background: var(--surface-2); }
+.btn-signup { background: var(--gold) !important; color: #1a1408 !important; font-weight: 700 !important; }
+.btn-signup:hover { background: var(--gold-bright) !important; }
+.nav-theme-toggle {
+  width: 36px; height: 36px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-2); color: var(--text-dim);
+  transition: color .18s, border-color .18s, background .18s;
+  flex-shrink: 0;
+}
+.nav-theme-toggle:hover { color: var(--gold-bright); border-color: var(--gold-line); background: var(--surface-2); }
+.nav-theme-toggle .ico { width: 17px; height: 17px; }
+
+/* ══ PAGE WRAP ══ */
+.page-wrap { max-width: 1180px; margin: 0 auto; padding: 32px 40px 60px; }
+
+/* ══ TAB PANELS ══ */
+.tab-panel { display: none; }
+.tab-panel.active { display: block; animation: fadeIn .3s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+/* ══ SECTION TITLE ══ */
+.section-title-row { margin-bottom: 28px; }
+.section-title { font-size: 22px; font-weight: 800; color: var(--text); text-align: right; margin-bottom: 12px; }
+.section-title-rule { height: 1px; background: var(--line-2); }
+
+.top-header-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+.top-header-titles { flex: 0 0 auto; text-align: right; }
+.top-header-title { display: flex; align-items: center; gap: 8px; justify-content: flex-end; font-size: 26px; font-weight: 800; color: var(--text); margin-bottom: 6px; white-space: nowrap; }
+.top-header-title .ico { width: 22px; height: 22px; color: var(--gold-bright); }
+.top-header-sub { font-size: 13.5px; color: var(--text-dim); white-space: nowrap; }
+
+/* Dropdown filters: pinned to the far LEFT of the row */
+.top-toolbar-filters { flex: 0 0 auto; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+.top-select-wrap { position: relative; display: flex; align-items: center; }
+.top-select-wrap select {
+  appearance: none; -webkit-appearance: none; -moz-appearance: none;
+  height: 40px; padding: 0 18px;
+  background: var(--surface-2); color: var(--text-dim);
+  border: 1px solid var(--line-2); border-radius: 999px;
+  font-family: 'Tajawal', sans-serif; font-size: 13.5px; font-weight: 500;
+  cursor: pointer;
+  transition: border-color .15s, color .15s;
+}
+.top-select-wrap select::-ms-expand { display: none; }
+.top-select-wrap select:hover, .top-select-wrap select:focus { border-color: var(--gold-line); color: var(--text); outline: none; }
+
+.top-clear-filters-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 40px; padding: 0 16px;
+  font-size: 13px; font-weight: 600; color: var(--text-dim);
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  border-radius: 999px; white-space: nowrap;
+  transition: color .15s, border-color .15s;
+}
+.top-clear-filters-btn:hover { color: #e0605c; border-color: rgba(224,96,92,0.45); }
+
+.rank-list { display: flex; flex-direction: column; gap: 12px; }
+
+.rank-card {
+  position: relative;
+  display: flex;
+  flex-direction: row; /* order property below controls visual placement in RTL */
+  align-items: center;
+  gap: 22px;
+  padding: 16px 22px;
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: box-shadow .2s ease;
+  cursor: pointer;
+}
+.rank-card::before {
+  content: "";
+  position: absolute; inset: -20px;
+  background-image: var(--card-bg);
+  background-size: cover;
+  background-position: center;
+  filter: blur(38px) brightness(0.46) saturate(1.1);
+  z-index: 0;
+  pointer-events: none;
+}
+.rank-card::after {
+  content: "";
+  position: absolute; inset: 0;
+  background: rgba(8,8,10,0.5);
+  z-index: 0;
+  pointer-events: none;
+}
+.rank-card > * { position: relative; z-index: 1; }
+.rank-card:hover::after { background: rgba(8,8,10,0.36); }
+.rank-card:hover { box-shadow: 0 0 0 1px var(--gold-line); }
+
+/* Rank number + trend — REVERSED: now placed FIRST in visual order (far-right edge in RTL) */
+.rank-number-col {
+  order: 1;
+  flex-shrink: 0;
+  width: 64px;
+  display: flex; flex-direction: column; align-items: center;
+  gap: 4px;
+}
+.rank-number-num {
+  font-family: 'Cinzel', serif;
+  font-size: 46px;
+  font-weight: 800;
+  line-height: 1;
+  color: var(--gold);
+  transition: text-shadow .3s ease, color .3s ease;
+}
+.rank-card:hover .rank-number-num {
+  color: var(--gold-bright);
+  text-shadow: 0 0 18px rgba(224,189,106,.7);
+}
+.rank-card[data-rank="1"] .rank-number-num,
+.rank-card[data-rank="2"] .rank-number-num,
+.rank-card[data-rank="3"] .rank-number-num { color: var(--gold-bright); }
+.rank-trend { display: flex; align-items: center; gap: 3px; font-size: 11.5px; font-weight: 700; }
+.rank-trend .ico { width: 10px; height: 10px; stroke-width: 3; }
+.rank-trend.up { color: var(--live); }
+.rank-trend.down { color: #e0605c; }
+.rank-trend.flat { color: var(--text-muted); }
+
+/* Thumbnail — portrait poster, matches mockup */
+.rank-thumb {
+  order: 2;
+  position: relative; flex-shrink: 0;
+  width: 140px;
+  aspect-ratio: 2 / 3;
+  border-radius: 10px;
+  overflow: hidden;
+  background: #111;
+  transition: box-shadow .3s ease;
+}
+.rank-card:hover .rank-thumb {
+  box-shadow: 0 0 0 1px var(--gold-line), 0 0 26px rgba(201,162,75,.35);
+}
+.rank-thumb img {
+  width: 100%; height: 100%;
+  object-fit: cover; object-position: center top;
+  display: block;
+  transition: transform .3s ease-in-out;
+}
+.rank-thumb:hover img { transform: scale(1.05); }
+
+/* Text content wrapper */
+.rank-body {
+  order: 3;
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: right;
+}
+
+.rank-title-ar { width: 100%; font-size: 20px; font-weight: 800; color: var(--text); line-height: 1.3; margin-bottom: 2px; text-shadow: 0 1px 10px rgba(0,0,0,.5); }
+.rank-tv-badge { display: inline-block; font-size: 10.5px; font-weight: 700; color: var(--gold-bright); border: 1px solid var(--gold-line); border-radius: 4px; padding: 1px 6px; margin-inline-start: 6px; vertical-align: middle; }
+.rank-title-en { width: 100%; font-size: 12.5px; color: var(--text-dim); margin-bottom: 6px; }
+
+.rank-meta-line { width: 100%; font-size: 12.5px; color: var(--text-dim); margin-bottom: 8px; }
+.rank-meta-line .dot { color: var(--text-muted); margin: 0 6px; }
+
+.rank-genre-tags { width: 100%; display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.rank-genre-tag {
+  font-size: 11px; color: var(--text-dim);
+  background: var(--surface-2); border: 1px solid var(--line-2);
+  border-radius: 999px; padding: 3px 10px;
+  white-space: nowrap;
+}
+
+.rank-desc {
+  width: 100%;
+  font-size: 12px; color: var(--text-muted); line-height: 1.55;
+  max-width: 460px;
+  overflow: hidden; text-overflow: ellipsis;
+  display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+}
+
+/* Action column: rating, votes, watch button, bookmark */
+.rank-side {
+  order: 4;
+  flex-shrink: 0;
+  display: flex; align-items: center; gap: 18px;
+}
+.rank-rating-col { text-align: center; }
+.rank-rating-col .rating-num { display: flex; align-items: center; gap: 5px; font-size: 17px; font-weight: 800; color: var(--gold-bright); }
+.rank-rating-col .star-ico { width: 15px; height: 15px; fill: var(--gold-bright); stroke: none; }
+.rank-rating-col .votes { font-size: 11px; color: var(--text-muted); margin-top: 2px; }
+
+.rank-watch-btn {
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 11px 20px;
+  background: var(--gold); color: #1a1408;
+  font-size: 13.5px; font-weight: 800;
+  border-radius: 999px;
+  white-space: nowrap;
+  position: relative;
+  overflow: hidden;
+  transition: background .2s ease, transform .25s cubic-bezier(.16,1,.3,1), box-shadow .25s cubic-bezier(.16,1,.3,1);
+}
+.rank-watch-btn::before {
+  content: "";
+  position: absolute; top: 0; left: -75%;
+  width: 45%; height: 100%;
+  background: linear-gradient(120deg, transparent, rgba(255,255,255,.55), transparent);
+  transform: skewX(-20deg);
+  transition: left .55s ease;
+}
+.rank-watch-btn:hover {
+  background: var(--gold-bright);
+  transform: translateY(-2px);
+  box-shadow: 0 10px 22px rgba(201,162,75,.4);
+}
+.rank-watch-btn:hover::before { left: 125%; }
+.rank-watch-btn .ico { width: 12px; height: 12px; stroke: none; fill: currentColor; }
+
+.rank-bookmark {
+  width: 40px; height: 40px; flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--line-2); border-radius: 10px; color: var(--text-dim);
+  transition: color .15s, border-color .15s;
+}
+.rank-bookmark:hover { color: var(--gold); border-color: var(--gold-line); }
+.rank-bookmark.saved { color: var(--gold); border-color: var(--gold-line); }
+.rank-bookmark .ico { width: 16px; height: 16px; }
+
+@media (max-width: 900px) {
+  .rank-thumb { width: 100px; }
+  .rank-desc { display: none; }
+}
+
+@media (max-width: 720px) {
+  .rank-card { flex-wrap: wrap; padding: 14px; }
+  .rank-side { width: 100%; justify-content: space-between; margin-inline-start: 0; margin-top: 8px; }
+  .top-header-row { flex-direction: column; align-items: flex-end; gap: 14px; }
+  .top-toolbar-filters { width: 100%; justify-content: flex-end; }
+}
+
+@media (max-width: 720px) {
+  .navbar { padding: 0 18px; gap: 14px; }
+  .nav-right .nav-link, .nav-dropdown, .nav-primary { display: none; }
+  .page-wrap { padding: 20px 18px 40px; }
+}
+
+.footer { border-top: 1px solid var(--line); padding: 24px; text-align: center; color: var(--text-muted); font-size: 11px; letter-spacing: 2px; font-family: 'Cinzel', serif; margin-top: 40px; }
+</style>
+</head>
+<body>
+ <noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NNT76NF2"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
+
+<div class="page-bg-img" id="page-bg-img" aria-hidden="true"></div>
+<div class="page-bg-fade" aria-hidden="true"></div>
+
+<nav class="navbar">
+  <a href="{% url 'tafarraj:drama_list' %}" class="nav-logo">T<span class="a">A</span>FARRAJ</a>
+
+  <div class="nav-primary">
+    <a href="{% url 'tafarraj:drama_list' %}" class="nav-link">الرئيسية</a>
+    <div class="nav-dropdown">
+      <button class="nav-dropdown-toggle" aria-haspopup="true">الدراما</button>
+      <div class="nav-dropdown-menu" role="menu">
+        <a href="{% url 'tafarraj:drama_list' %}?countries=korean" role="menuitem">🇰🇷 كورية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=chinese" role="menuitem">🇨🇳 صينية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=japanese" role="menuitem">🇯🇵 يابانية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=thai" role="menuitem">🇹🇭 تايلاندية</a>
+        <a href="{% url 'tafarraj:drama_list' %}?countries=turkish" role="menuitem">🇹🇷 تركية</a>
+      </div>
+    </div>
+    <a href="{% url 'tafarraj:top_drama' %}" class="nav-link active">أفضل الدراما</a>
+    <a href="{% url 'tafarraj:recommendation' %}" class="nav-link">التصنيفات</a>
+  </div>
+
+  <div class="nav-search-wrap">
+    <form class="nav-search" method="get" action="{% url 'tafarraj:drama_list' %}">
+      <input type="text" name="search" placeholder="ابحث عن مسلسل، ممثل، نوع..." aria-label="بحث">
+      <button type="submit" class="nav-search-btn" aria-label="بحث">
+        <svg class="ico" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+      </button>
+    </form>
+  </div>
+  <div class="nav-right">
+    <div class="nav-actions">
+      {% if user.is_authenticated %}
+        <a href="{% url 'tafarraj:my_list' %}">قائمتي</a>
+        <a href="{% url 'tafarraj:logout' %}">خروج</a>
+      {% else %}
+        <a href="{% url 'tafarraj:login' %}">دخول</a>
+        <a href="{% url 'tafarraj:signup' %}" class="btn-signup">إنشاء حساب</a>
+      {% endif %}
+    </div>
+    <button type="button" class="nav-theme-toggle" id="theme-toggle" aria-label="تبديل المظهر">
+      <svg class="ico" viewBox="0 0 24 24"><path d="M21 12.5A9 9 0 1 1 11.5 3a7 7 0 0 0 9.5 9.5z"/></svg>
+    </button>
+  </div>
+</nav>
+
+<div class="page-wrap">
+
+  <!-- ═══ TOP DRAMAS ═══ -->
+  <div class="tab-panel active" id="panel-top">
+
+    <div class="top-header-row">
+      <div class="top-header-titles">
+        <div class="top-header-title">
+          <svg class="ico" viewBox="0 0 24 24" stroke-width="2"><path d="M3 17l6-6 4 4 8-8M15 7h6v6"/></svg>
+          أفضل الدراما
+        </div>
+        <div class="top-header-sub">أعلى الدراما تقييماً</div>
+      </div>
+
+      <div class="top-toolbar-filters">
+        <div class="top-select-wrap">
+          <select id="filter-country">
+            <option value="">كل الدول</option>
+            {% for code, label in countries %}
+            {% if code != 'moroccan' %}
+            <option value="{{ code }}" {% if selected_country == code %}selected{% endif %}>{{ label }}</option>
+            {% endif %}
+            {% endfor %}
+          </select>
+        </div>
+        <div class="top-select-wrap">
+          <select id="filter-year">
+            <option value="">كل السنوات</option>
+            {% for y in years %}
+            <option value="{{ y }}" {% if selected_year == y|stringformat:"s" %}selected{% endif %}>{{ y }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="top-select-wrap">
+          <select id="filter-genre">
+            <option value="">كل الأنواع</option>
+            {% for g in genres %}
+            <option value="{{ g.id }}" data-name-en="{{ g.name }}" {% if selected_genre and g.id|stringformat:"s" in selected_genre %}selected{% endif %}>{{ g.name_arabic|default:g.name }}</option>
+            {% endfor %}
+          </select>
+        </div>
+        <div class="top-select-wrap">
+          <select id="filter-status">
+            <option value="">كل الحالات</option>
+            <option value="ongoing" {% if selected_status == "ongoing" %}selected{% endif %}>مستمر</option>
+            <option value="completed" {% if selected_status == "completed" %}selected{% endif %}>مكتمل</option>
+          </select>
+        </div>
+        {% if selected_country or selected_year or selected_genre or selected_status %}
+        <a href="{{ request.path }}" class="top-clear-filters-btn">✕ مسح الفلاتر</a>
+        {% endif %}
+      </div>
+    </div>
+
+    <div class="rank-list" id="rank-list">
+      <!-- Rank cards are rendered here dynamically by renderRankCard() -->
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">TAFARRAJ · عالمٌ من الدراما الآسيوية بين يديك</div>
+
+{{ dramas_json|json_script:"dramas-data" }}
+
+<script>
+document.getElementById('theme-toggle').addEventListener('click', () => {
+  document.body.classList.toggle('theme-light');
+});
+
+const COUNTRY_FLAGS = {
+  'كوري': '🇰🇷', 'كوريا': '🇰🇷', 'korean': '🇰🇷', 'south korea': '🇰🇷',
+  'صيني': '🇨🇳', 'صين': '🇨🇳', 'chinese': '🇨🇳', 'china': '🇨🇳',
+  'ياباني': '🇯🇵', 'يابان': '🇯🇵', 'japanese': '🇯🇵', 'japan': '🇯🇵',
+  'تايلاندي': '🇹🇭', 'تايلاند': '🇹🇭', 'thai': '🇹🇭', 'thailand': '🇹🇭',
+  'تركي': '🇹🇷', 'تركيا': '🇹🇷', 'turkish': '🇹🇷', 'turkey': '🇹🇷',
+};
+function getFlag(country) {
+  if (!country) return '🌐';
+  return COUNTRY_FLAGS[String(country).trim().toLowerCase()] || COUNTRY_FLAGS[String(country).trim()] || '🌐';
+}
+
+function getRankLabel(show) {
+  if (show.rankLabel) return show.rankLabel;
+  if (show.rank === 1) return 'الأفضل';
+  if (show.rank === 2) return 'شائع جداً';
+  if (show.rank === 3) return 'الأكثر تميزاً';
+  return 'الأعلى تقييماً';
+}
+
+// Fallback English titles for known dramas, used only when the backend
+// doesn't supply titleEn. Extend this map as needed — key is the Arabic
+// title exactly as it comes from the data, value is the English title.
+const TITLE_EN_FALLBACK = {
+  'ملكة الدموع': 'Queen of Tears',
+  'سيدونا غير المكتوبة': 'My Love Story',
+  'سيولنا غير المكتوبة': 'My Love Story',
+  'كشاف الحب': 'Love in Contract',
+  'كشاش الحب': 'Love in Contract',
+  'الملك الأبدي': 'The Eternal Monarch',
+  'عندما تعطيك الحياة اليوسفي': 'When Life Gives You Tangerines',
+};
+function resolveTitleEn(show) {
+  return show.titleEn || TITLE_EN_FALLBACK[show.titleAr] || '';
+}
+
+// The DB's Genre.name_arabic field is blank for every genre right now, so
+// this translates the English genre names to Arabic on the frontend.
+// If you fill in name_arabic in Django admin later, this map becomes
+// unnecessary (but leaving it won't hurt anything).
+const GENRE_AR = {
+  'Action': 'أكشن', 'Adventure': 'مغامرة', 'Business': 'أعمال', 'Comedy': 'كوميديا',
+  'Crime': 'جريمة', 'Documentary': 'وثائقي', 'Drama': 'دراما', 'Family': 'عائلي',
+  'Fantasy': 'خيال', 'Food': 'طعام', 'Historical': 'تاريخي', 'Horror': 'رعب',
+  'Investigation': 'تحقيق', 'Law': 'قانون', 'Life': 'حياة', 'Martial Arts': 'فنون قتالية',
+  'Mature': 'للبالغين', 'Medical': 'طبي', 'Melodrama': 'ميلودراما', 'Military': 'عسكري',
+  'Music': 'موسيقى', 'Mystery': 'غموض', 'Political': 'سياسي', 'Psychological': 'نفسي',
+  'Reality': 'واقعي', 'Romance': 'رومانسي', 'Sci-Fi': 'خيال علمي', 'Sitcom': 'كوميديا موقف',
+  'Sports': 'رياضة', 'Supernatural': 'خوارق', 'Thriller': 'إثارة', 'Tokusatsu': 'توكوساتسو',
+  'War': 'حرب', 'Wuxia': 'ووشيا', 'Youth': 'شبابي',
+};
+function translateGenre(name) {
+  return GENRE_AR[name] || name;
+}
+
+function renderTrend(show) {
+  // show.trend: positive number = moved up N spots, negative = down N spots, 0/undefined = no change
+  const t = show.trend || 0;
+  if (t > 0) {
+    return `<span class="rank-trend up"><svg class="ico" viewBox="0 0 24 24"><path d="M12 19V5M5 12l7-7 7 7"/></svg>${t}</span>`;
+  }
+  if (t < 0) {
+    return `<span class="rank-trend down"><svg class="ico" viewBox="0 0 24 24"><path d="M12 5v14M5 12l7 7 7-7"/></svg>${Math.abs(t)}</span>`;
+  }
+  return `<span class="rank-trend flat">–</span>`;
+}
+
+function renderRankCard(show) {
+  const metaLine = [show.year, show.country, show.episodes].filter(Boolean).join(' <span class="dot">•</span> ');
+  const genreTagsHtml = (show.genres && show.genres.length)
+    ? `<div class="rank-genre-tags">${show.genres.map(g => `<span class="rank-genre-tag">${translateGenre(g)}</span>`).join('')}</div>`
+    : '';
+  const watchUrl = show.watchUrl || '#';
+  const votesHtml = show.votes ? `<span class="votes">(${show.votes} تقييم)</span>` : '';
+
+  return `
+    <div class="rank-card" data-rank="${show.rank}" data-id="${show.id}" style="--card-bg: url('${show.image}')">
+
+      <div class="rank-number-col">
+        <div class="rank-number-num">${show.rank}</div>
+        ${renderTrend(show)}
+      </div>
+
+      <div class="rank-thumb"><img src="${show.image}" alt="${show.titleAr}"></div>
+
+      <div class="rank-body">
+        <div class="rank-title-ar">${show.titleAr}<span class="rank-tv-badge">TV</span></div>
+        <div class="rank-title-en">${resolveTitleEn(show)}</div>
+        <div class="rank-meta-line">${metaLine}</div>
+        ${genreTagsHtml}
+        <div class="rank-desc">${show.description || ''}</div>
+      </div>
+
+      <div class="rank-side">
+        <div class="rank-rating-col">
+          <div class="rating-num"><svg class="star-ico" viewBox="0 0 24 24"><path d="M12 2l2.9 6.6L22 9.3l-5 4.9 1.2 7-6.2-3.4L5.8 21.2 7 14.2l-5-4.9 7.1-.7L12 2z"/></svg>${Number(show.rating).toFixed(1)}</div>
+          ${votesHtml}
+        </div>
+        <a href="${watchUrl}" class="rank-watch-btn">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M8 5v14l11-7z"/></svg>
+          شاهد الآن
+        </a>
+        <button type="button" class="rank-bookmark" aria-label="أضف إلى قائمتي">
+          <svg class="ico" viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4V3z"/></svg>
+        </button>
+      </div>
+    </div>`;
+}
+
+const dramasData = JSON.parse(document.getElementById('dramas-data').textContent);
+
+// Full-page blurred poster backdrop (same technique as the homepage hero)
+(function renderPageBg() {
+  const bgEl = document.getElementById('page-bg-img');
+  if (!bgEl) return;
+  const imgs = dramasData.slice(0, 6).map(d => d.image).filter(Boolean);
+  bgEl.innerHTML = imgs.map(src => `<img src="${src}" alt="">`).join('');
+})();
+
+const rankListEl = document.getElementById('rank-list');
+dramasData.forEach(show => rankListEl.insertAdjacentHTML('beforeend', renderRankCard(show)));
+
+/* ── Click anywhere on a card → open the drama detail page.
+   Watch button keeps its own link, bookmark button is handled separately. ── */
+rankListEl.addEventListener('click', (e) => {
+  if (e.target.closest('.rank-watch-btn')) return;
+  if (e.target.closest('.rank-bookmark')) return;
+  const card = e.target.closest('.rank-card');
+  if (card && card.dataset.id) {
+    window.location.href = `/drama/${card.dataset.id}/`;
+  }
+});
+
+/* ── Bookmark button → save to watchlist via existing API endpoint ── */
+rankListEl.addEventListener('click', (e) => {
+  const btn = e.target.closest('.rank-bookmark');
+  if (!btn) return;
+  e.stopPropagation();
+  const card = btn.closest('.rank-card');
+  const dramaId = card.dataset.id;
+  const alreadySaved = btn.classList.contains('saved');
+
+  fetch('/api/save-drama/', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      drama_id: dramaId,
+      list_type: 'watchlist',
+      action: alreadySaved ? 'remove' : 'save'
+    })
+  })
+    .then(r => r.json())
+    .then(data => {
+      if (data.status === 'saved') btn.classList.add('saved');
+      if (data.status === 'removed') btn.classList.remove('saved');
+    })
+    .catch(err => console.error('Save failed', err));
+});
+
+/* ── Relabel genre dropdown options from English to Arabic
+   (the DB's name_arabic field is empty, so the template falls back
+   to English — this fixes just the display, filtering still uses
+   the genre's id, which is unaffected) ── */
+
+/* ── Filter dropdowns → reload the page with the chosen filters as query params ──
+   NOTE: names match what _common_discover_context() in views.py reads:
+   request.GET.get('country'), .get('year'), .getlist('genre'), .get('status').
+   If ranking_engine.get_top_dramas_queryset() internally expects different
+   names than what this same views.py file reads for display, that's a
+   mismatch inside your own backend — send me ranking_engine.py to confirm. */
+const filterMap = {
+  'filter-country': 'country',
+  'filter-year': 'year',
+  'filter-genre': 'genre',
+  'filter-status': 'status',
+};
+Object.entries(filterMap).forEach(([elId, paramName]) => {
+  const el = document.getElementById(elId);
+  if (!el) return;
+  el.addEventListener('change', () => {
+    const params = new URLSearchParams(window.location.search);
+    if (el.value) {
+      params.set(paramName, el.value);
+    } else {
+      params.delete(paramName);
+    }
+    window.location.search = params.toString();
+  });
+});
+</script>
+<script>
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('copy', e => e.preventDefault());
+</script>
+</body>
+</html>

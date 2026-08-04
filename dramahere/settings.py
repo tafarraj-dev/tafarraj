@@ -19,7 +19,8 @@ MESSAGE_STORAGE = 'django.contrib.messages.storage.session.SessionStorage'
 SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-*3z_!^8_0&p6mfo3_)m+x($&j5v%ql+cdcuk+t8=*a$4vb)%bh')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+DEBUG = True
+GTM_CONTAINER_ID = "GTM-NNT76NF2"
 
 ALLOWED_HOSTS = ['*']
 
@@ -73,6 +74,7 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
+        'OPTIONS': {"timeout": 20},
     }
 }
 

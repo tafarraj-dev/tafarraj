@@ -1,3 +1,29 @@
+
+
+""" **Keep this one.** It's a useful maintenance script.
+
+It checks all your Turkish dramas against TMDB and deletes any that aren't real dramas
+ — reality shows, talk shows, news, game shows that sneaked in from `fetch_by_year`.
+
+It's also **safe** — runs as a dry run by default, only deletes when you add `--confirm`.
+
+Since you're deleting `fetch_by_year`, you probably won't need this often. But keep it anyway to 
+clean up anything that was already added by that script."""
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 """
 CLEAN SCRIPT — Run as management command:
     python manage.py clean_turkish
@@ -130,3 +156,5 @@ class Command(BaseCommand):
             self.stdout.write(self.style.SUCCESS(f'\n✅ Deleted {len(to_delete)} non-drama shows'))
         elif dry_run:
             self.stdout.write(f'\n⚠  Dry run — run with --confirm to delete these {len(to_delete)} shows')
+
+

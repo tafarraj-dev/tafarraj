@@ -1,10 +1,35 @@
 """
+
+
+This is just an **audit/report script**.
+ It makes zero changes to your database — 
+it only reads and prints a report showing which Turkish dramas are missing thumbnails, descriptions, or genres.
+
+**Keep it** — it's useful to run before/after your Turkish script to see what's incomplete. 
+But move it into a proper management command so you can run it with `python manage.py audit_turkish` instead of through the shell.
+
+
+"""
+
+
+
+
+
+
+
+
+
+
+"""
 AUDIT SCRIPT — Run in Django shell:
     python manage.py shell < audit_turkish.py
     
 Shows a full report of what's wrong with each Turkish drama.
 Makes NO changes to the database.
 """
+
+
+
 
 from Tafarraj.models import Drama
 

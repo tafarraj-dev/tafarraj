@@ -56,3 +56,66 @@ fix.py
 
 # Env secrets if any
 .env
+# databases
+db.sqlite3
+db - Copie*.sqlite3
+db -mdlmain_source.sqlite3
+DB.sqlite.MDL
+
+# scraper/import working data
+data/
+dictionaries/
+media/
+reports/
+scraped_data/
+staticfiles/
+tafarraj_migration/
+
+# maintenance/scraper scripts - not needed for the live site
+Tafarraj/management/
+
+# loose scraper & one-off scripts
+*_index.json
+*_listing*.json
+matches.json
+mdl_*.json
+mdl_filters_cache.json
+review_queue.json
+new_dramas_found.json
+backup*.json
+backup*.sqlite3
+
+# debug/log clutter
+*.png
+*_raw.html
+*.log
+merge_output.txt
+merge_full_output.txt
+match_log.txt
+project_tree.txt
+project_structure.txt
+genre_check.txt
+dramas_export.csv
+
+# python
+__pycache__/
+venv/
+
+# specific leftover scraper/debug scripts
+Batch_test_parser.py
+Cleanup_cloudflare_failures.py
+Verify_one_page.py
+audit_duplicate_asia2tv_links.py
+build_import_ready.py
+cleanup_wrong_asia2tv_links.py
+db_check.py
+debug_search.py
+diagnose_gaps.py
+discover_dramas.py
+full_inspect.py
+inspect_dataset.py
+inspect_pagination.py
+investigate_errors.py
+parse_test.py
+save_asia2tv_login.py
+verify_detail_page.py

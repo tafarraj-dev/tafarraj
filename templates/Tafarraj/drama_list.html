@@ -2,16 +2,13 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
+<script>(function(w,d,s,l,i){w[l]=w[l]||[];w[l].push({'gtm.start':
+new Date().getTime(),event:'gtm.js'});var f=d.getElementsByTagName(s)[0],
+j=d.createElement(s),dl=l!='dataLayer'?'&l='+l:'';j.async=true;j.src=
+'https://www.googletagmanager.com/gtm.js?id='+i+dl;f.parentNode.insertBefore(j,f);
+})(window,document,'script','dataLayer','GTM-NNT76NF2');</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-NMMBV85QHJ"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
-  gtag('config', 'G-NMMBV85QHJ');
-</script>
 <title>تفرّج — اكتشف مسلسلاتك</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -260,6 +257,12 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   color: #1a1408; background: var(--gold);
   border-radius: 5px; line-height: 1.4;
 }
+.rating-badge {
+  position: absolute; bottom: 8px; right: 8px; padding: 3px 8px;
+  font-size: 10.5px; font-weight: 700; font-family: 'Cinzel', serif;
+  color: var(--gold); background: rgba(8,8,10,.8); backdrop-filter: blur(6px);
+  border: 1px solid var(--line-2); border-radius: 5px;
+}
 .save-btn {
   position: absolute; top: 8px; left: 8px; width: 30px; height: 30px;
   display: flex; align-items: center; justify-content: center;
@@ -382,6 +385,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 </style>
 </head>
 <body>
+<noscript><iframe src="https://www.googletagmanager.com/ns.html?id=GTM-NNT76NF2"
+height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
 
 <!-- NAVBAR -->
 <nav class="navbar">
@@ -398,6 +403,8 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
         <a href="{% url 'tafarraj:drama_list' %}?countries=turkish">🇹🇷 تركية</a>
       </div>
     </div>
+    <a href="{% url 'tafarraj:top_drama' %}" class="nav-link">أفضل الدراما</a>
+    <a href="{% url 'tafarraj:recommendation' %}" class="nav-link">التصنيفات</a>
   </div>
   <div class="nav-right">
     {% if user.is_authenticated %}
@@ -489,6 +496,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
             <div class="poster-overlay"></div>
             <span class="yr-badge">{{ drama.release_year }}</span>
             <span class="ctry-badge">{% if drama.country == 'korean' %}KR{% elif drama.country == 'chinese' %}CN{% elif drama.country == 'japanese' %}JP{% elif drama.country == 'thai' %}TH{% elif drama.country == 'turkish' %}TR{% endif %}</span>
+            {% if drama.mdl_rating %}<span class="rating-badge">★ {{ drama.mdl_rating|floatformat:1 }}</span>{% endif %}
             <button class="save-btn" data-id="{{ drama.pk }}" aria-label="حفظ">♡</button>
           </div>
           <div class="card-info">
@@ -596,6 +604,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
             <div class="poster-overlay"></div>
             <span class="yr-badge">{{ drama.release_year }}</span>
             <span class="ctry-badge">{% if drama.country == 'korean' %}KR{% elif drama.country == 'chinese' %}CN{% elif drama.country == 'japanese' %}JP{% elif drama.country == 'thai' %}TH{% elif drama.country == 'turkish' %}TR{% endif %}</span>
+            {% if drama.mdl_rating %}<span class="rating-badge">★ {{ drama.mdl_rating|floatformat:1 }}</span>{% endif %}
             <button class="save-btn" data-id="{{ drama.pk }}" aria-label="حفظ">♡</button>
           </div>
           <div class="card-info">
@@ -703,6 +712,10 @@ document.querySelectorAll('.save-btn').forEach(btn => {
         if (!wrap.contains(e.target)) dropdown.innerHTML = '';
     });
 })();
+</script>
+<script>
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('copy', e => e.preventDefault());
 </script>
 </body>
 </html>

@@ -58,7 +58,8 @@ class GenreAdmin(admin.ModelAdmin):
 
 @admin.register(Drama)
 class DramaAdmin(admin.ModelAdmin):
-    list_display  = ('title_arabic', 'title', 'country', 'release_year', 'status')
+    list_display  = ('title_arabic', 'title', 'country', 'release_year', 'status', 'thumbnail_position')
+    list_editable = ('thumbnail_position',)
     list_filter   = ('country', 'status', 'release_year')
     search_fields = ('title', 'title_arabic', 'title_original')
     filter_horizontal = ('genres',)

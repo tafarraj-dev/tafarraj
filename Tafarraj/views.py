@@ -1,5 +1,5 @@
 from django.shortcuts import render, get_object_or_404, redirect
-from django.db.models import Q, Count, Case, When, IntegerField
+from django.db.models import Q, Count, Case, When, IntegerField, F
 from django.core.paginator import Paginator
 from .models import Drama, Genre, WatchLink, SavedDrama, WatchHistory
 from django.contrib.auth import login, logout, authenticate
@@ -8,12 +8,18 @@ from django.contrib import messages
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods, require_POST
+from django_ratelimit.decorators import ratelimit
 import json
 import requests
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from .models import CustomUser, WatchSite
 from itertools import zip_longest
+from rapidfuzz import fuzz
 from django.utils import timezone
+from .ranking_engine import filter_scored_dramas
+from .ranking_engine import compute_quality_scores
+from .recommendation_engine import get_similar_dramas_v2, get_similar_dramas_batch
+from .metadata_engine import combine_rating, combine_vote_count
 
 
 def get_active_filters(request):
@@ -60,12 +66,36 @@ def format_ar(dt):
         return dt.strftime("%d %b %Y")
 
 
+
+FUZZY_SEARCH_THRESHOLD = 65
+
+def fuzzy_search_dramas(search_term, queryset):
+    candidates = []
+    for d in queryset.only('id', 'title', 'title_arabic', 'title_original'):
+        titles = [t for t in (d.title, d.title_arabic, d.title_original) if t]
+        if not titles:
+            continue
+        best_score = max(fuzz.token_sort_ratio(search_term, t) for t in titles)
+        if best_score >= FUZZY_SEARCH_THRESHOLD:
+            candidates.append((best_score, d.id))
+
+    if not candidates:
+        return Drama.objects.none()
+
+    candidates.sort(key=lambda x: x[0], reverse=True)
+    ordered_ids = [pk for _, pk in candidates]
+    preserved_order = Case(
+        *[When(pk=pk, then=pos) for pos, pk in enumerate(ordered_ids)],
+        output_field=IntegerField()
+    )
+    return Drama.objects.filter(pk__in=ordered_ids).order_by(preserved_order)
+
 def drama_list(request):
     dramas = Drama.objects.all()
 
-    countries = request.GET.getlist('countries')
+    countries = [c for c in request.GET.getlist('countries') if c]
     if countries:
-        dramas = dramas.filter(country__in=countries)
+         dramas = dramas.filter(country__in=countries)
 
     status = request.GET.get('status')
     if status:
@@ -85,22 +115,26 @@ def drama_list(request):
     # ✅ FIXED: added title_original to search filter and ranking
     search = request.GET.get('search')
     if search:
-        dramas = dramas.filter(
+        strict_matches = dramas.filter(
             Q(title__icontains=search) |
             Q(title_arabic__icontains=search) |
             Q(title_original__icontains=search)
-        ).annotate(
-            search_rank=Case(
-                When(title__istartswith=search, then=0),
-                When(title_arabic__istartswith=search, then=1),
-                When(title_original__istartswith=search, then=2),
-                When(title__icontains=search, then=3),
-                When(title_arabic__icontains=search, then=4),
-                When(title_original__icontains=search, then=5),
-                default=6,
-                output_field=IntegerField(),
-            )
-        ).order_by('search_rank', '-release_year')
+        )
+        if strict_matches.exists():
+            dramas = strict_matches.annotate(
+                search_rank=Case(
+                    When(title__istartswith=search, then=0),
+                    When(title_arabic__istartswith=search, then=1),
+                    When(title_original__istartswith=search, then=2),
+                    When(title__icontains=search, then=3),
+                    When(title_arabic__icontains=search, then=4),
+                    When(title_original__icontains=search, then=5),
+                    default=6,
+                    output_field=IntegerField(),
+                )
+            ).order_by('search_rank', '-release_year')
+        else:
+            dramas = fuzzy_search_dramas(search, dramas)
 
     dramas = dramas.annotate(
         country_order=Case(
@@ -161,6 +195,7 @@ def drama_list(request):
     return render(request, 'Tafarraj/drama_list.html', context)
 
 
+@ratelimit(key='ip', rate='60/m', block=True)
 def drama_detail(request, pk):
     drama = get_object_or_404(Drama, pk=pk)
     is_saved = False
@@ -174,6 +209,7 @@ def drama_detail(request, pk):
         'drama': drama,
         'is_saved': is_saved,
         'save_type': save_type,
+        'similar_dramas': get_similar_dramas_v2(drama),
     })
 
 
@@ -493,6 +529,163 @@ def auto_find_links(request):
     return JsonResponse({"results": results})
 
 
+
+
+
+def _safe_image(d):
+    if d.thumbnail_url:
+        return d.thumbnail_url
+    if d.thumbnail:
+        try:
+            return d.thumbnail.url
+        except ValueError:
+            return ''
+    return ''
+
+
+def _safe_watch_url(d):
+    link = d.links.first()
+    return link.url if link else '#'
+
+
+def _rating_source_votes(d):
+    return combine_vote_count(d)
+
+RECOMMENDATION_COUNTRIES = ['korean', 'chinese', 'japanese', 'thai', 'turkish']
+
+
+def _get_ranked_dramas(request):
+    ranked_dramas = list(
+        Drama.objects.prefetch_related('genres', 'links').order_by('-quality_score')
+    )
+    ranked_dramas = filter_scored_dramas(ranked_dramas, request)
+    return ranked_dramas
+
+
+def _build_dramas_json(request, ranked_dramas=None):
+    if ranked_dramas is None:
+        ranked_dramas = _get_ranked_dramas(request)
+
+    limit = request.GET.get('limit', '10')
+    try:
+        limit = int(limit)
+        if limit not in (5, 10, 25, 50):
+            limit = 10
+    except ValueError:
+        limit = 10
+
+    dramas = ranked_dramas[:limit]
+    for i, d in enumerate(dramas, start=1):
+        d.rank = i
+
+    dramas_json = [
+        {
+            'id': d.id,
+            'rank': d.rank,
+            'titleAr': d.title_arabic or d.title,
+            'titleEn': d.title,
+            'genres': [g.name_arabic or g.name for g in d.genres.all()],
+            'status': d.get_status_display(),
+            'episodes': f'{d.total_episodes} حلقة',
+            'year': d.release_year,
+            'country': d.get_country_display(),
+            'description': d.description_arabic or d.description,
+            'image': _safe_image(d),
+            'rating': combine_rating(d),
+            'popularity': f'#{d.mdl_popularity}' if d.mdl_popularity else '—',
+            'votes': _rating_source_votes(d),
+            'watchUrl': _safe_watch_url(d),
+        }
+        for d in dramas
+    ]
+
+    return dramas, dramas_json, limit
+
+
+def _build_recommendation_anchors(ranked_dramas, per_country=10):
+    by_country = {c: [] for c in RECOMMENDATION_COUNTRIES}
+    for d in ranked_dramas:
+        bucket = by_country.get(d.country)
+        if bucket is not None and len(bucket) < per_country:
+            bucket.append(d)
+
+    grouped = [by_country[c] for c in RECOMMENDATION_COUNTRIES]
+    anchors = [d for row in zip_longest(*grouped) for d in row if d is not None]
+    return anchors
+
+
+def recommendation_view(request):
+    ranked_dramas = _get_ranked_dramas(request)
+    dramas, dramas_json, limit = _build_dramas_json(request, ranked_dramas)
+    anchors = _build_recommendation_anchors(ranked_dramas)
+
+    similar_by_anchor = get_similar_dramas_batch(anchors, limit=4)
+
+    reco_rows_json = []
+    for d in anchors:
+        similar = similar_by_anchor.get(d.id, [])
+        reco_rows_json.append({
+            'anchor': {
+                'id': d.id,
+                'titleAr': d.title_arabic or d.title,
+                'titleEn': d.title,
+                'genres': [g.name_arabic or g.name for g in d.genres.all()],
+                'rating': combine_rating(d),
+                'status': d.get_status_display(),
+                'episodes': f'{d.total_episodes} حلقة',
+                'year': d.release_year,
+                'country': d.get_country_display(),
+                'image': _safe_image(d),
+                'watchUrl': _safe_watch_url(d),
+            },
+            'similar': [
+                {
+                    'id': s.id,
+                    'titleAr': s.title_arabic or s.title,
+                    'titleEn': s.title,
+                    'genres': [g.name_arabic or g.name for g in s.genres.all()],
+                    'rating': combine_rating(s),
+                    'episodes': s.total_episodes,
+                    'year': s.release_year,
+                    'image': _safe_image(s),
+                }
+                for s in similar
+            ],
+        })
+
+    context = _common_discover_context(request, dramas, dramas_json, limit)
+    context['reco_rows_json'] = reco_rows_json
+    context['genres_json'] = [
+        {'id': g.id, 'name': g.name_arabic or g.name}
+        for g in Genre.objects.all().order_by('name_arabic')
+    ]
+    return render(request, 'Tafarraj/recommendation.html', context)
+
+
+def _common_discover_context(request, dramas, dramas_json, limit):
+    return {
+        'dramas': dramas,
+        'dramas_json': dramas_json,
+        'genres': Genre.objects.all().order_by('name_arabic'),
+        'years': Drama.objects.values_list('release_year', flat=True).distinct().order_by('-release_year'),
+        'countries': Drama.COUNTRY_CHOICES,
+        'selected_country': request.GET.get('country'),
+        'selected_genre': request.GET.getlist('genre'),
+        'selected_year': request.GET.get('year'),
+        'selected_status': request.GET.get('status'),
+        'selected_min_rating': request.GET.get('min_rating'),
+        'selected_limit': limit,
+    }
+
+
+def top_drama_view(request):
+    dramas, dramas_json, limit = _build_dramas_json(request)
+    context = _common_discover_context(request, dramas, dramas_json, limit)
+    return render(request, 'Tafarraj/topdrama.html', context)
+
+
+
+
 def drama_autocomplete(request):
     q = request.GET.get('q', '').strip()
     if len(q) < 2:
@@ -511,3 +704,32 @@ def drama_autocomplete(request):
             'url': f'/drama/{d.pk}/'
         })
     return JsonResponse({'results': results})
+
+
+def genre_dramas_api(request, genre_id):
+    genre = get_object_or_404(Genre, pk=genre_id)
+    dramas_qs = Drama.objects.filter(genres=genre).prefetch_related('genres', 'links').order_by('-release_year', '-id')
+
+    paginator = Paginator(dramas_qs, 24)
+    page_obj = paginator.get_page(request.GET.get('page', 1))
+
+    results = [
+        {
+            'id': d.id,
+            'titleAr': d.title_arabic or d.title,
+            'titleEn': d.title,
+            'genres': [g.name_arabic or g.name for g in d.genres.all()],
+            'episodes': d.total_episodes,
+            'year': d.release_year,
+            'image': _safe_image(d),
+            'rating': combine_rating(d),
+        }
+        for d in page_obj
+    ]
+
+    return JsonResponse({
+        'results': results,
+        'has_next': page_obj.has_next(),
+        'page': page_obj.number,
+        'num_pages': paginator.num_pages,
+    })

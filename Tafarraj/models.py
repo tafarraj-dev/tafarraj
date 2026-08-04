@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import AbstractBaseUser, BaseUserManager, PermissionsMixin
+from django.utils.text import slugify
 
 
 # ─── CUSTOM USER MANAGER ───────────────────────────────────────────────────────
@@ -77,13 +78,38 @@ class UserProfile(models.Model):
 
 # ─── GENRE ─────────────────────────────────────────────────────────────────────
 
+
 class Genre(models.Model):
-    name        = models.CharField(max_length=50)
-    name_arabic = models.CharField(max_length=50)
+    name        = models.CharField(max_length=50, unique=True)
+    name_arabic = models.CharField(max_length=50, blank=True)
+    slug        = models.SlugField(max_length=60, unique=True, blank=True, null=True, allow_unicode=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name, allow_unicode=True)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name_arabic or self.name
 
+class Tag(models.Model):
+    name        = models.CharField(max_length=100, unique=True)
+    name_arabic = models.CharField(max_length=100, blank=True)
+    slug        = models.SlugField(max_length=110, unique=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            base_slug = slugify(self.name, allow_unicode=True)
+            slug = base_slug
+            counter = 1
+            while Tag.objects.filter(slug=slug).exclude(pk=self.pk).exists():
+                counter += 1
+                slug = f"{base_slug}-{counter}"
+            self.slug = slug
+        super().save(*args, **kwargs)
+
+    def __str__(self):
+        return self.name
 
 # ─── DRAMA ─────────────────────────────────────────────────────────────────────
 
@@ -109,8 +135,14 @@ class Drama(models.Model):
     title_original = models.CharField(max_length=200, blank=True)
 
     # Visual
-    thumbnail     = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
-    thumbnail_url = models.URLField(blank=True, null=True)
+    thumbnail          = models.ImageField(upload_to='thumbnails/', blank=True, null=True)
+    thumbnail_url      = models.URLField(blank=True, null=True)
+    thumbnail_position = models.CharField(
+        max_length=20,
+        blank=True,
+        default="",
+        help_text="Leave blank for default (top). Or try: center, bottom, top, or '50% 20%'"
+    )
 
     # Details
     description        = models.TextField()
@@ -125,12 +157,41 @@ class Drama(models.Model):
     next_episode_date      = models.DateTimeField(blank=True, null=True)
     current_episode_number = models.IntegerField(default=0)
     tmdb_id                = models.IntegerField(null=True, blank=True, unique=True)
+    mdl_rating = models.FloatField(null=True, blank=True)
+    quality_score = models.FloatField(null=True, blank=True, default=0)
+    mdl_id = models.CharField(max_length=100, null=True, blank=True, unique=True)
+    aired_start_date = models.DateField(null=True, blank=True)
+    aired_end_date   = models.DateField(null=True, blank=True)
+    content_rating   = models.CharField(max_length=100, blank=True)
+    mdl_rank         = models.IntegerField(null=True, blank=True)
+    mdl_popularity   = models.IntegerField(null=True, blank=True)
+    last_mdl_refresh = models.DateTimeField(null=True, blank=True)
+    homepage_url = models.URLField(blank=True, default="", max_length=500)
+    aradrama_checked = models.BooleanField(default=False)
+
+    # --- TMDB-sourced metrics (kept separate from MDL fields on purpose) ---
+    tmdb_rating = models.FloatField(null=True, blank=True)        # TMDB vote_average, 0-10
+    tmdb_vote_count = models.IntegerField(null=True, blank=True)  # TMDB vote_count
+    tmdb_popularity = models.FloatField(null=True, blank=True)    # TMDB popularity score
 
     # Categories
     genres = models.ManyToManyField(Genre)
+    tags   = models.ManyToManyField(Tag, blank=True)
+
+    homepage_url = models.URLField(blank=True, default="", max_length=500)
 
     def __str__(self):
         return self.title_arabic or self.title
+    
+class AlternateTitle(models.Model):
+    drama = models.ForeignKey(Drama, on_delete=models.CASCADE, related_name='alternate_titles')
+    title = models.CharField(max_length=200)
+
+    class Meta:
+        unique_together = ('drama', 'title')
+
+    def __str__(self):
+        return f"{self.title} ({self.drama.title})"
 
 
 # ─── WATCH LINK ────────────────────────────────────────────────────────────────

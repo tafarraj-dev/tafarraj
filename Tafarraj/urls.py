@@ -18,4 +18,7 @@ urlpatterns = [
     path('api/auto-find-links/', auto_find_links),
     path('api/watch-click/', views.record_watch_click, name='record_watch_click'),
     path('autocomplete/', views.drama_autocomplete, name='autocomplete'),
+    path('top-drama/', views.top_drama_view, name='top_drama'),
+    path('recommendations/', views.recommendation_view, name='recommendation'),
+    path('api/genre-dramas/<int:genre_id>/', views.genre_dramas_api, name='genre_dramas_api'),
 ]
