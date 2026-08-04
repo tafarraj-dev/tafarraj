@@ -572,8 +572,8 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
                            </div>
                            {% endif %}
                        </div>
-                       <a href="{{ link.url }}" target="_blank" rel="noopener" class="btn-watch" onclick="recordWatchClick({{ drama.pk }}, '{{ link.website_name|escapejs }}')">
-                           <span>شاهد الآن</span>
+                       <a href="{{ link.url }}" target="_blank" rel="noopener" class="btn-watch" onclick="recordWatchClick({{ drama.pk }}, '{{ link.website_name|escapejs }}', '{{ drama.title_arabic|escapejs }}')"></a>
+                       <span>شاهد الآن</span>
                            <svg class="ico ext-ico" viewBox="0 0 24 24"><path d="M7 17L17 7M9 7h8v8"/></svg>
                        </a>
                    </div>
@@ -709,8 +709,13 @@ async function removeSave() {
         }
     } catch(e) { showToast('حدث خطأ، حاول مجدداً'); }
 }
-
-function recordWatchClick(dramaId, siteName) {
+function recordWatchClick(dramaId, siteName, dramaName) {
+    dataLayer.push({
+        event: 'watch_link_click',
+        drama_id: dramaId,
+        drama_name: dramaName,
+        provider: siteName
+    });
     fetch('/api/watch-click/', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'X-CSRFToken': CSRF_TOKEN },
