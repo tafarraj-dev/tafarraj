@@ -581,8 +581,7 @@ function renderRankCard(show) {
   const votesHtml = show.votes ? `<span class="votes">(${show.votes} تقييم)</span>` : '';
 
   return `
-    <div class="rank-card" data-rank="${show.rank}" data-id="${show.id}" style="--card-bg: url('${show.image}')">
-
+    <div class="rank-card" data-rank="${show.rank}" data-id="${show.id}" data-title="${show.titleAr}" style="--card-bg: url('${show.image}')">
       <div class="rank-number-col">
         <div class="rank-number-num">${show.rank}</div>
         ${renderTrend(show)}
@@ -630,10 +629,27 @@ dramasData.forEach(show => rankListEl.insertAdjacentHTML('beforeend', renderRank
 /* ── Click anywhere on a card → open the drama detail page.
    Watch button keeps its own link, bookmark button is handled separately. ── */
 rankListEl.addEventListener('click', (e) => {
-  if (e.target.closest('.rank-watch-btn')) return;
+  if (e.target.closest('.rank-watch-btn')) {
+    const wcard = e.target.closest('.rank-card');
+    if (wcard) {
+      dataLayer.push({
+        event: 'watch_link_click',
+        drama_id: wcard.dataset.id,
+        drama_name: wcard.dataset.title,
+        list_context: 'top_drama'
+      });
+    }
+    return;
+  }
   if (e.target.closest('.rank-bookmark')) return;
   const card = e.target.closest('.rank-card');
   if (card && card.dataset.id) {
+    dataLayer.push({
+      event: 'select_item',
+      drama_id: card.dataset.id,
+      drama_name: card.dataset.title,
+      item_list_name: 'top_drama'
+    });
     window.location.href = `/drama/${card.dataset.id}/`;
   }
 });

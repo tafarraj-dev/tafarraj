@@ -489,7 +489,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       </div>
       <div class="rail">
         {% for drama in newest_dramas %}
-        <a href="{% url 'tafarraj:drama_detail' drama.pk %}" class="rank-card">
+        <a href="{% url 'tafarraj:drama_detail' drama.pk %}" class="rank-card" data-card-track data-drama-id="{{ drama.pk }}" data-drama-name="{{ drama.title_arabic|default:drama.title }}" data-list-name="home_newest"></a>
           <div class="rank-num">{{ forloop.counter }}</div>
           <div class="poster">
             <img src="{{ drama.thumbnail_url|default:'' }}" alt="{{ drama.title_arabic }}" loading="lazy">
@@ -598,7 +598,7 @@ height="0" width="0" style="display:none;visibility:hidden"></iframe></noscript>
       <div class="cards-grid">
         {% for drama in dramas %}
         {% if drama.thumbnail_url %}
-        <a href="{% url 'tafarraj:drama_detail' drama.pk %}" class="card">
+        <a href="{% url 'tafarraj:drama_detail' drama.pk %}" class="card" data-card-track data-drama-id="{{ drama.pk }}" data-drama-name="{{ drama.title_arabic|default:drama.title }}" data-list-name="browse_grid"></a>
           <div class="poster">
             <img src="{{ drama.thumbnail_url|default:'' }}" alt="{{ drama.title_arabic }}" loading="lazy">
             <div class="poster-overlay"></div>
@@ -718,4 +718,16 @@ document.addEventListener('contextmenu', e => e.preventDefault());
 document.addEventListener('copy', e => e.preventDefault());
 </script>
 </body>
+<script>
+document.addEventListener('click', function(e) {
+  var el = e.target.closest('[data-card-track]');
+  if (!el) return;
+  dataLayer.push({
+    event: 'select_item',
+    drama_id: el.dataset.dramaId,
+    drama_name: el.dataset.dramaName,
+    item_list_name: el.dataset.listName
+  });
+});
+</script>
 </html>
