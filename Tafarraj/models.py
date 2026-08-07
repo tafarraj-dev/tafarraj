@@ -168,6 +168,8 @@ class Drama(models.Model):
     last_mdl_refresh = models.DateTimeField(null=True, blank=True)
     homepage_url = models.URLField(blank=True, default="", max_length=500)
     aradrama_checked = models.BooleanField(default=False)
+    # Drama model
+    ranking_checked = models.BooleanField(default=False)
 
     # --- TMDB-sourced metrics (kept separate from MDL fields on purpose) ---
     tmdb_rating = models.FloatField(null=True, blank=True)        # TMDB vote_average, 0-10
